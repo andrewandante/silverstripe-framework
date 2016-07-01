@@ -120,7 +120,7 @@ class GridField extends FormField {
 
 		$this->state = new GridState($this);
 
-		$this->addExtraClass('ss-gridfield');
+		$this->addExtraClass('grid-field');
 	}
 
 	/**
@@ -471,7 +471,7 @@ class GridField extends FormField {
 		$body = $this->getOptionalTableBody($content);
 		$footer = $this->getOptionalTableFooter($content);
 
-		$this->addExtraClass('ss-gridfield field');
+		$this->addExtraClass('grid-field field');
 
 		$fieldsetAttributes = array_diff_key(
 			$this->getAttributes(),
@@ -492,7 +492,7 @@ class GridField extends FormField {
 
 		$tableAttributes = array(
 			'id' => $tableId,
-			'class' => 'ss-gridfield-table',
+			'class' => 'table grid-field__table',
 			'cellpadding' => '0',
 			'cellspacing' => '0',
 		);
@@ -592,7 +592,7 @@ class GridField extends FormField {
 		} else {
 			$classes[] = 'odd';
 		}
-		
+
 		$this->extend('updateNewRowClasses', $classes, $total, $index, $record);
 
 		return $classes;
