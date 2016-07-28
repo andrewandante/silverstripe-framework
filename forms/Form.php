@@ -1148,7 +1148,7 @@ class Form extends RequestHandler {
 		} elseif($this->controller->hasMethod("FormObjectLink")) {
 			return $this->controller->FormObjectLink($this->name);
 		} else {
-			return Controller::join_links($this->controller->Link(), $this->name);
+			return $this->controller->Link($this->name);
 		}
 	}
 
@@ -1742,7 +1742,7 @@ class Form extends RequestHandler {
 
 	/**
 	 * Get a list of all actions, including those in the main "fields" FieldList
-	 * 
+	 *
 	 * @return array
 	 */
 	protected function getAllActions() {
