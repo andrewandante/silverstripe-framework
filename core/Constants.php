@@ -87,24 +87,62 @@ function stripslashes_recursively(&$array) {
 }
 
 /**
- * Check if a given ip is in a network
- * @param  string $ip    IP to check in IPV4 format eg. 127.0.0.1
+ * Check if a given ip is in a comma-separated list of network ranges
+ * @param  string $ip    IP to check eg. 127.0.0.1, ::1
  * @param  string $range IP/CIDR netmask eg. 127.0.0.0/24, also 127.0.0.1 is accepted and /32 assumed
  * @return boolean true if the ip is in this range / false if not.
  */
-function ip_in_range( $ip, $range ) {
-	if ( strpos( $range, '/' ) == false ) {
-		$range .= '/32';
+function ip_in_any_range($ip, $ranges){
+	foreach (explode(',', $ranges) as $range) {
+		if (strpos($ip, ':')) {
+			$in_range = ip_in_ipv6_range($ip, $range);
+		} elseif (strpos($ip, '.')) {
+			$in_range = ip_in_ipv4_range($ip, $range);
+		} else {
+			$in_range = false;
+		}
+		if ($in_range == true) return true;
 	}
-	// $range is in IP/CIDR format eg 127.0.0.1/24
-	list( $range, $netmask ) = explode( '/', $range, 2 );
-	$range_decimal = ip2long( $range );
-	$ip_decimal = ip2long( $ip );
-	$wildcard_decimal = pow( 2, ( 32 - $netmask ) ) - 1;
-	$netmask_decimal = ~ $wildcard_decimal;
-	return ( ( $ip_decimal & $netmask_decimal ) == ( $range_decimal & $netmask_decimal ) );
+	return false;
 }
 
+function ip_in_ipv4_range($ip, $range) {
+	if (strpos($range, '/') == false) {
+		return ($ip == $range);
+	}
+	// $range is in IP/CIDR format eg 127.0.0.1/24
+	list($range, $netmask) = explode('/', $range, 2);
+	$range_decimal = ip2long($range);
+	$ip_decimal = ip2long($ip);
+	$wildcard_decimal = pow(2, (32 - $netmask)) - 1;
+	$netmask_decimal = ~ $wildcard_decimal;
+	return (($ip_decimal & $netmask_decimal) == ($range_decimal & $netmask_decimal));
+}
+
+// converts inet_pton output to string with bits - needed for ipv6 comparison
+function inet_to_bits($inet) {
+	$unpacked = unpack('A16', $inet);
+	$unpacked = str_split($unpacked[1]);
+	$binaryip = '';
+	foreach ($unpacked as $char) {
+		$binaryip .= str_pad(decbin(ord($char)), 8, '0', STR_PAD_LEFT);
+	}
+	return $binaryip;
+}
+
+function ip_in_ipv6_range($ip, $range) {
+	$ip = inet_pton($ip);
+	$binaryip = inet_to_bits($ip);
+
+	list ($net, $maskbits) = explode('/', $range);
+	$net = inet_pton($net);
+	$binarynet = inet_to_bits($net);
+
+	$ip_net_bits = substr($binaryip, 0, $maskbits);
+	$net_bits = substr($binarynet, 0, $maskbits);
+
+	return ($ip_net_bits == $net_bits);
+}
 /**
  * Validate whether the request comes directly from a trusted server or not
  * This is necessary to validate whether or not the values of X-Forwarded-
@@ -123,10 +161,9 @@ if(!defined('TRUSTED_PROXY')) {
 			if(SS_TRUSTED_PROXY_IPS === '*') {
 				$trusted = true;
 			} elseif(isset($_SERVER['REMOTE_ADDR'])) {
-				foreach (explode(',', SS_TRUSTED_PROXY_IPS) as $ipAddress) {
-					if (ip_in_range($_SERVER['REMOTE_ADDR'], $ipAddress)) {
-						$trusted = true;
-						break;
+				if (ip_in_any_range($_SERVER['REMOTE_ADDR'], SS_TRUSTED_PROXY_IPS)) {
+					$trusted = true;
+					break;
 					}
 				}
 			}
