@@ -88,30 +88,48 @@ function stripslashes_recursively(&$array) {
 
 /**
  * Check if a given ip is in a comma-separated list of network ranges
- * @param  string $ip    IP to check eg. 127.0.0.1, ::1
- * @param  string $range IP/CIDR netmask eg. 127.0.0.0/24, also 127.0.0.1 is accepted and /32 assumed
- * @return boolean true if the ip is in this range / false if not.
+ * Used to determine TRUSTED_PROXY_IP match
+ * @param  string $ip	  IP to check eg. 127.0.0.1, ::1
+ * @param  string $ranges Comma-separated list of IPs/CIDRs
+ * eg. "127.0.0.0/24, 192.168.1.168, ::1, 2001:0db8:85a3::/48"
+ * @return boolean true if the IP is in any range / false if not.
  */
 function ip_in_any_range($ip, $ranges){
 	foreach (explode(',', $ranges) as $range) {
-		if (strpos($ip, ':')) {
+		// be nice to people who use spaces
+		$range = trim($range);
+		if (substr_count($range, ':') > 1 && substr_count($ip, ':') > 1) {
 			$in_range = ip_in_ipv6_range($ip, $range);
-		} elseif (strpos($ip, '.')) {
+		} elseif (strpos($range, '.')!== false && strpos($ip, '.')!== false) {
 			$in_range = ip_in_ipv4_range($ip, $range);
 		} else {
 			$in_range = false;
 		}
-		if ($in_range == true) return true;
+		// break the loop if we sink the battleship
+		if ($in_range == true) {
+			return true;
+		}
 	}
 	return false;
 }
 
+/**
+ * Check for IPv4 address in an IPv4 range (or against a single IP)
+ * @param string $ip	Single IP to try
+ * @param string $range IP/CIDR range or single IP to check against
+ * @return boolean 		true if in range/false if not
+ */
 function ip_in_ipv4_range($ip, $range) {
+	// if we are matching to an IP, do a straight comparison
 	if (strpos($range, '/') == false) {
 		return ($ip == $range);
 	}
 	// $range is in IP/CIDR format eg 127.0.0.1/24
 	list($range, $netmask) = explode('/', $range, 2);
+	// validate the netmask
+	if ($netmask < 0 || $netmask > 32) {
+		return false;
+	}
 	$range_decimal = ip2long($range);
 	$ip_decimal = ip2long($ip);
 	$wildcard_decimal = pow(2, (32 - $netmask)) - 1;
@@ -130,7 +148,21 @@ function inet_to_bits($inet) {
 	return $binaryip;
 }
 
+/**
+ * Check for IPv6 address in an IPv6 range (or against a single IP)
+ * @param string $ip	Single IP to try
+ * @param string $range IP/CIDR range or single IP to check against
+ * @return boolean 		true if in range/false if not
+ */
 function ip_in_ipv6_range($ip, $range) {
+	if (strpos($range, '/') == false) {
+		if ($ip == $range) {
+			return true;
+		}
+		// can't rely on a straight comparison here because of double colons
+		$range = $range . '/128';
+	}
+	// convert to binary for bit comparison
 	$ip = inet_pton($ip);
 	$binaryip = inet_to_bits($ip);
 
@@ -143,6 +175,7 @@ function ip_in_ipv6_range($ip, $range) {
 
 	return ($ip_net_bits == $net_bits);
 }
+
 /**
  * Validate whether the request comes directly from a trusted server or not
  * This is necessary to validate whether or not the values of X-Forwarded-
@@ -174,7 +207,7 @@ if(!defined('TRUSTED_PROXY')) {
 	 * Declare whether or not the connecting server is a trusted proxy
 	 */
 	define('TRUSTED_PROXY', $trusted);
-}
+
 
 /**
  * A blank HTTP_HOST value is used to detect command-line execution.
