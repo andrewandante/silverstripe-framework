@@ -165,7 +165,10 @@ class SSViewer implements Flushable
 
     public static function add_themes($themes = [])
     {
-        SSViewer::config()->merge('themes', $themes);
+        $currentThemes = SSViewer::get_themes();
+        $finalThemes = array_merge($themes, $currentThemes);
+        SSViewer::config()->remove('themes');
+        SSViewer::set_themes(array_values(array_unique($finalThemes)));
     }
 
     public static function get_themes()
