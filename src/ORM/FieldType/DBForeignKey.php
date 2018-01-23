@@ -29,6 +29,15 @@ class DBForeignKey extends DBInt
      */
     protected $object;
 
+    /**
+     * This represents the number of related objects to show in a dropdown before it reverts
+     * to a NumericField
+     *
+     * @config
+     * @var int
+     */
+    private static $dropdownFieldThreshold = 100;
+
     private static $index = true;
 
     private static $default_search_filter_class = 'ExactMatchFilter';
@@ -63,11 +72,17 @@ class DBForeignKey extends DBInt
         $list = DataList::create($hasOneClass);
         // Don't scaffold a dropdown for large tables, as making the list concrete
         // might exceed the available PHP memory in creating too many DataObject instances
-        if ($list->count() < 100) {
+        $threshold = self::config()->get('dropdownFieldThreshold');
+        if ($list->count() < $threshold) {
             $field = new DropdownField($this->name, $title, $list->map('ID', $titleField));
             $field->setEmptyString(' ');
         } else {
             $field = new NumericField($this->name, $title);
+            $field->setRightTitle(
+                'This field has been converted to a NumericField as there are over ' . $threshold
+                . ' related objects. This can be set with the config variable'
+                . ' SilverStripe\ORM\FieldTypeDBForeignKey::dropdownFieldThreshold'
+            );
         }
         return $field;
     }
