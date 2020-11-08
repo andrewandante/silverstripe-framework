@@ -328,6 +328,29 @@ class CsvBulkLoaderTest extends SapphireTest
         );
     }
 
+    public function testGetImportSpecWithColumnMap()
+    {
+        $loader = new CsvBulkLoader(Player::class);
+        $loader->columnMap = [
+            'Bio' => 'Biography',
+            'DOB' => 'Birthday',
+            'Registered?' => 'IsRegistered'
+        ];
+
+        $spec = $loader->getImportSpec();
+        $this->assertArrayHasKey('fields', $spec);
+        $this->assertArraySubset(
+             [
+                 'FirstName' => 'First name',
+                 'Biography' => 'Bio',
+                 'Birthday' => 'DOB',
+                 'ExternalIdentifier' => 'External identifier',
+                 'IsRegistered' => 'Registered?',
+            ],
+             $spec['fields']
+        );
+    }
+
     public function testLoadWithByteOrderMark()
     {
         $loader = new CsvBulkLoader(Player::class);

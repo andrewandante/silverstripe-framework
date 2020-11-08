@@ -229,6 +229,15 @@ abstract class BulkLoader extends ViewableData
         // using $$includerelations flag as false, so that it only contain $db fields
         $fields = (array)$singleton->fieldLabels(false);
 
+        // if the dbfield has an override in columnMap, instead feed that back to the user
+        if (!empty($this->columnMap)) {
+            foreach ($this->columnMap as $columnHeading => $dbField) {
+                if (isset($fields[$dbField])) {
+                    $fields[$dbField] = $columnHeading;
+                }
+            }
+        }
+
         // Merge relations
         $relations = array_merge(
             $singleton->hasOne(),
