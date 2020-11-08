@@ -301,6 +301,33 @@ class CsvBulkLoaderTest extends SapphireTest
         $this->assertEquals($player->FirstName, "John. He's a good guy. ");
     }
 
+    public function testGetImportSpec()
+    {
+        $loader = new CsvBulkLoader(Player::class);
+        $spec = $loader->getImportSpec();
+        $this->assertArrayHasKey('fields', $spec);
+        $this->assertArraySubset(
+             [
+                'FirstName' => 'First name',
+                'Biography' => 'Biography',
+                'Birthday' => 'Birthday',
+                'ExternalIdentifier' => 'External identifier',
+                'IsRegistered' => 'Is registered',
+            ],
+             $spec['fields']
+        );
+        $this->assertArrayHasKey('relations', $spec);
+        $this->assertArraySubset(
+            [
+                'Team' => Team::class,
+                'Contract' => PlayerContract::class,
+                'LinkTracking' => 'LinkTracking',
+                'FileTracking' => 'FileTracking',
+            ],
+            $spec['relations']
+        );
+    }
+
     public function testLoadWithByteOrderMark()
     {
         $loader = new CsvBulkLoader(Player::class);
