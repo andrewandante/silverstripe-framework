@@ -24,6 +24,13 @@ class PasswordField extends TextField
     protected $allowValuePostback = false;
 
     /**
+     * If true, the field will show an eye icon that can be selected to toggle
+     * plain-text viewing of the password
+     * @var bool
+     */
+    protected $showViewPasswordToggle = true; // true just for testing
+
+    /**
      * Returns an input field.
      *
      * @param string $name
@@ -52,6 +59,25 @@ class PasswordField extends TextField
     public function getAllowValuePostback()
     {
         return $this->allowValuePostback;
+    }
+
+    /**
+     * @param bool $bool
+     * @return $this
+     */
+    public function setShowViewPasswordToggle($bool)
+    {
+        $this->showViewPasswordToggle = (bool) $bool;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getShowViewPasswordToggle()
+    {
+        return $this->showViewPasswordToggle;
     }
 
     /**
