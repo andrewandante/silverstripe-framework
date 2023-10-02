@@ -20,7 +20,7 @@ class i18nTextCollectorTask extends BuildTask
     protected $title = "i18n Textcollector Task";
 
     protected $description = "
-		Traverses through files in order to collect the 'entity master tables'
+		Traverses through files in order to collect the 'entity base tables'
 		stored in each module.
 
 		Parameters:
@@ -31,7 +31,7 @@ class i18nTextCollectorTask extends BuildTask
 	";
 
     /**
-     * This is the main method to build the master string tables with the original strings.
+     * This is the main method to build the base string tables with the original strings.
      * It will search for existent modules that use the i18n feature, parse the _t() calls
      * and write the resultant files in the lang folder of each module.
      *

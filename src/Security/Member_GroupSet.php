@@ -44,7 +44,7 @@ class Member_GroupSet extends ManyManyList
         $query = SQLSelect::create('"Group_Members"."GroupID"', '"Group_Members"', $manyManyFilter);
         $groupIDs = $query->execute()->column();
 
-        // Get all ancestors, iteratively merging these into the master set
+        // Get all ancestors, iteratively merging these into the base set
         $allGroupIDs = [];
         while ($groupIDs) {
             $allGroupIDs = array_merge($allGroupIDs, $groupIDs);

@@ -54,7 +54,7 @@ class i18nTextCollector
     private const THEME_PREFIX = 'themes:';
 
     /**
-     * Default (master) locale
+     * Default locale
      *
      * @var string
      */
@@ -168,7 +168,7 @@ class i18nTextCollector
     }
 
     /**
-     * This is the main method to build the master string tables with the
+     * This is the main method to build the base string tables with the
      * original strings. It will search for existent modules that use the
      * i18n feature, parse the _t() calls and write the resultant files
      * in the lang folder of each module.
@@ -176,7 +176,7 @@ class i18nTextCollector
      * @uses DataObject::collectI18nStatics()
      *
      * @param array $restrictToModules
-     * @param bool $mergeWithExisting Merge new master strings with existing
+     * @param bool $mergeWithExisting Merge new base strings with existing
      * ones already defined in language files, rather than replacing them.
      * This can be useful for long-term maintenance of translations across
      * releases, because it allows "translation backports" to older releases
@@ -219,7 +219,7 @@ class i18nTextCollector
         // Resolve conflicts between duplicate keys across modules
         $entitiesByModule = $this->resolveDuplicateConflicts($entitiesByModule);
 
-        // Optionally merge with existing master strings
+        // Optionally merge with existing base strings
         if ($mergeWithExisting) {
             $entitiesByModule = $this->mergeWithExisting($entitiesByModule);
         }
@@ -390,8 +390,8 @@ class i18nTextCollector
         $modules = $this->getModulesAndThemes();
         foreach ($entitiesByModule as $module => $messages) {
             // Load existing localisations
-            $masterFile = Path::join($modules[$module]->getPath(), 'lang', $this->defaultLocale . '.yml');
-            $existingMessages = $this->getReader()->read($this->defaultLocale, $masterFile);
+            $baseFile = Path::join($modules[$module]->getPath(), 'lang', $this->defaultLocale . '.yml');
+            $existingMessages = $this->getReader()->read($this->defaultLocale, $baseFile);
 
             // Merge
             if ($existingMessages) {
@@ -411,11 +411,11 @@ class i18nTextCollector
      */
     protected function getEntitiesByModule()
     {
-        // A master string tables array (one mst per module)
+        // A base string tables array (one per module)
         $entitiesByModule = [];
         $modules = $this->getModulesAndThemes();
         foreach ($modules as $moduleName => $module) {
-            // we store the master string tables
+            // we store the base string tables
             $processedEntities = $this->processModule($module);
             $moduleName = $this->getModuleName($moduleName, $module);
             if (isset($entitiesByModule[$moduleName])) {
@@ -514,7 +514,7 @@ class i18nTextCollector
     }
 
     /**
-     * Builds a master string table from php and .ss template files for the module passed as the $module param
+     * Builds a base string table from php and .ss template files for the module passed as the $module param
      * @see collectFromCode() and collectFromTemplate()
      *
      * @param Module $module Module instance

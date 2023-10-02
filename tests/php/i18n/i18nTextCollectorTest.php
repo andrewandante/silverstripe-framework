@@ -623,7 +623,7 @@ PHP;
         );
     }
 
-    public function testCollectFromFilesystemAndWriteMasterTables()
+    public function testCollectFromFilesystemAndWriteBaseTables()
     {
         i18n::set_locale('en_US');  //set the locale to the US locale expected in the asserts
         i18n::config()->set('default_locale', 'en_US');
@@ -641,7 +641,7 @@ PHP;
         $moduleLangFile = "{$this->alternateBaseSavePath}/i18ntestmodule/lang/" . $c->getDefaultLocale() . '.yml';
         $this->assertTrue(
             file_exists($moduleLangFile ?? ''),
-            'Master language file can be written to modules /lang folder'
+            'Base language file can be written to modules /lang folder'
         );
 
         $moduleLangFileContent = file_get_contents($moduleLangFile ?? '');
@@ -674,7 +674,7 @@ PHP;
         $otherModuleLangFile = "{$this->alternateBaseSavePath}/i18nothermodule/lang/" . $c->getDefaultLocale() . '.yml';
         $this->assertTrue(
             file_exists($otherModuleLangFile ?? ''),
-            'Master language file can be written to modules /lang folder'
+            'Base language file can be written to modules /lang folder'
         );
         $otherModuleLangFileContent = file_get_contents($otherModuleLangFile ?? '');
         $this->assertStringContainsString(

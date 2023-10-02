@@ -53,7 +53,7 @@ class YamlWriter implements Writer
         // De-normalise messages and convert to yml
         $content = $this->getYaml($messages, $locale);
 
-        // Open the English file and write the Master String Table
+        // Open the English file and write the Base String Table
         $langFile = Path::join($langFolder, $locale . '.yml');
         if ($fh = fopen($langFile ?? '', "w")) {
             fwrite($fh, $content ?? '');
