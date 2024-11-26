@@ -128,7 +128,7 @@ abstract class DBField extends ModelData implements DBIndexable, FieldValidation
         }
         // Setting value needs to happen below the call to setOptions() in case the default value is set there
         $value = $this->getDefaultValue();
-        $this->setValue($value);
+        $this->setValue($value, markChanged: false);
 
         parent::__construct();
     }

@@ -964,7 +964,7 @@ class DataObject extends ModelData implements DataObjectInterface, i18nEntityPro
     public function i18n_classDescription(): ?string
     {
         $notDefined = 'NOT_DEFINED';
-        $description = _t(static::class.'.CLASS_DESCRIPTION', $this->classDescription() ?? $notDefined);
+        $description = _t(static::class . '.CLASS_DESCRIPTION', $this->classDescription() ?? $notDefined);
         if ($description === $notDefined) {
             return null;
         }
