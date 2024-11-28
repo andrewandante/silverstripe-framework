@@ -13,7 +13,7 @@ class AnsiToHtmlConverter extends BaseAnsiConverter
 {
     use Injectable;
 
-    public function __construct(Theme $theme = null, $inlineStyles = true, $charset = 'UTF-8')
+    public function __construct(?Theme $theme = null, $inlineStyles = true, $charset = 'UTF-8')
     {
         $theme ??= AnsiToHtmlTheme::create();
         parent::__construct($theme, $inlineStyles, $charset);

@@ -317,7 +317,7 @@ class Member extends DataObject
      * @param ValidationResult $result Optional result to add errors to
      * @return ValidationResult
      */
-    public function validateCanLogin(ValidationResult &$result = null)
+    public function validateCanLogin(?ValidationResult &$result = null)
     {
         $result = $result ?: ValidationResult::create();
         if ($this->isLockedOut()) {
@@ -495,7 +495,7 @@ class Member extends DataObject
      *
      * @param HTTPRequest|null $request
      */
-    public function beforeMemberLoggedOut(HTTPRequest $request = null)
+    public function beforeMemberLoggedOut(?HTTPRequest $request = null)
     {
         $this->extend('onBeforeMemberLoggedOut', $request);
     }
@@ -505,7 +505,7 @@ class Member extends DataObject
      *
      * @param HTTPRequest|null $request
      */
-    public function afterMemberLoggedOut(HTTPRequest $request = null)
+    public function afterMemberLoggedOut(?HTTPRequest $request = null)
     {
         $this->extend('onAfterMemberLoggedOut', $request);
     }
