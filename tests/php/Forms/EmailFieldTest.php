@@ -37,15 +37,12 @@ class EmailFieldTest extends FunctionalTest
     {
         $field = new EmailField("MyEmail");
         $field->setValue($email);
-
         if ($expectSuccess) {
             $message = $checkText . " (/$email/ did not pass validation, but was expected to)";
         } else {
             $message = $checkText . " (/$email/ passed validation, but not expected to)";
         }
-
-        $result = $field->validate(new FieldsValidator());
-        $this->assertSame($expectSuccess, $result, $message);
+        $this->assertSame($expectSuccess, $field->validate()->isValid(), $message);
     }
 
     /**

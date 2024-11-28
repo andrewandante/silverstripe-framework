@@ -12,6 +12,7 @@ use SilverStripe\View\HTML;
 use Closure;
 use SilverStripe\Core\Validation\ConstraintValidator;
 use Symfony\Component\Validator\Constraints\PasswordStrength;
+use SilverStripe\Core\Validation\ValidationResult;
 
 /**
  * Two masked input fields, checks for matching passwords.
@@ -420,155 +421,145 @@ class ConfirmedPasswordField extends FormField
             || ($this->showOnClick && $this->hiddenField && $this->hiddenField->Value());
     }
 
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
+    public function validate(): ValidationResult
     {
-        $name = $this->name;
-
-        // if field isn't visible, don't validate
+        // If the field isn't visible, then do not validate it
         if (!$this->isSaveable()) {
-            return $this->extendValidationResult(true, $validator);
+            return parent::validate();
         }
-
-        $this->getPasswordField()->setValue($this->value);
-        $this->getConfirmPasswordField()->setValue($this->confirmValue);
-        $value = $this->getPasswordField()->Value();
-
-        // both password-fields should be the same
-        if ($value != $this->getConfirmPasswordField()->Value()) {
-            $validator->validationError(
-                $name,
-                _t('SilverStripe\\Forms\\Form.VALIDATIONPASSWORDSDONTMATCH', "Passwords don't match"),
-                "validation"
-            );
-
-            return $this->extendValidationResult(false, $validator);
-        }
-
-        if (!$this->canBeEmpty) {
-            // both password-fields shouldn't be empty
-            if (!$value || !$this->getConfirmPasswordField()->Value()) {
-                $validator->validationError(
+        $this->beforeExtending('updateValidate', function (ValidationResult $result) {
+            $name = $this->name;
+    
+            $this->getPasswordField()->setValue($this->value);
+            $this->getConfirmPasswordField()->setValue($this->confirmValue);
+            $value = $this->getPasswordField()->Value();
+    
+            // both password-fields should be the same
+            if ($value != $this->getConfirmPasswordField()->Value()) {
+                $result->addFieldError(
                     $name,
-                    _t('SilverStripe\\Forms\\Form.VALIDATIONPASSWORDSNOTEMPTY', "Passwords can't be empty"),
+                    _t('SilverStripe\\Forms\\Form.VALIDATIONPASSWORDSDONTMATCH', "Passwords don't match"),
                     "validation"
                 );
-
-                return $this->extendValidationResult(false, $validator);
+                return;
             }
-        }
-
-        // lengths
-        $minLength = $this->getMinLength();
-        $maxLength = $this->getMaxLength();
-        if ($minLength || $maxLength) {
-            $errorMsg = null;
-            $limit = null;
-            if ($minLength && $maxLength) {
-                $limit = "{{$minLength},{$maxLength}}";
-                $errorMsg = _t(
-                    __CLASS__ . '.BETWEEN',
-                    'Passwords must be {min} to {max} characters long.',
-                    ['min' => $minLength, 'max' => $maxLength]
-                );
-            } elseif ($minLength) {
-                $limit = "{{$minLength}}.*";
-                $errorMsg = _t(
-                    __CLASS__ . '.ATLEAST',
-                    'Passwords must be at least {min} characters long.',
-                    ['min' => $minLength]
-                );
-            } elseif ($maxLength) {
-                $limit = "{0,{$maxLength}}";
-                $errorMsg = _t(
-                    __CLASS__ . '.MAXIMUM',
-                    'Passwords must be at most {max} characters long.',
-                    ['max' => $maxLength]
-                );
+    
+            if (!$this->canBeEmpty) {
+                // both password-fields shouldn't be empty
+                if (!$value || !$this->getConfirmPasswordField()->Value()) {
+                    $result->addFieldError(
+                        $name,
+                        _t('SilverStripe\\Forms\\Form.VALIDATIONPASSWORDSNOTEMPTY', "Passwords can't be empty"),
+                        "validation"
+                    );
+                    return;
+                }
             }
-            $limitRegex = '/^.' . $limit . '$/';
-            if (!empty($value) && !preg_match($limitRegex ?? '', $value ?? '')) {
-                $validator->validationError(
-                    $name,
-                    $errorMsg,
-                    "validation"
-                );
-
-                return $this->extendValidationResult(false, $validator);
+    
+            // lengths
+            $minLength = $this->getMinLength();
+            $maxLength = $this->getMaxLength();
+            if ($minLength || $maxLength) {
+                $errorMsg = null;
+                $limit = null;
+                if ($minLength && $maxLength) {
+                    $limit = "{{$minLength},{$maxLength}}";
+                    $errorMsg = _t(
+                        __CLASS__ . '.BETWEEN',
+                        'Passwords must be {min} to {max} characters long.',
+                        ['min' => $minLength, 'max' => $maxLength]
+                    );
+                } elseif ($minLength) {
+                    $limit = "{{$minLength}}.*";
+                    $errorMsg = _t(
+                        __CLASS__ . '.ATLEAST',
+                        'Passwords must be at least {min} characters long.',
+                        ['min' => $minLength]
+                    );
+                } elseif ($maxLength) {
+                    $limit = "{0,{$maxLength}}";
+                    $errorMsg = _t(
+                        __CLASS__ . '.MAXIMUM',
+                        'Passwords must be at most {max} characters long.',
+                        ['max' => $maxLength]
+                    );
+                }
+                $limitRegex = '/^.' . $limit . '$/';
+                if (!empty($value) && !preg_match($limitRegex ?? '', $value ?? '')) {
+                    $result->addFieldError(
+                        $name,
+                        $errorMsg,
+                        "validation"
+                    );
+                    return;
+                }
             }
-        }
-
-        if ($this->getRequireStrongPassword()) {
-            $strongEnough = ConstraintValidator::validate(
-                $value,
-                new PasswordStrength(minScore: $this->getMinPasswordStrength())
-            )->isValid();
-            if (!$strongEnough) {
-                $validator->validationError(
-                    $name,
-                    _t(
-                        __CLASS__ . '.VALIDATIONSTRONGPASSWORD',
-                        'The password strength is too low. Please use a stronger password.'
-                    ),
-                    'validation'
-                );
-
-                return $this->extendValidationResult(false, $validator);
-            }
-        }
-
-        // Check if current password is valid
-        if (!empty($value) && $this->getRequireExistingPassword()) {
-            if (!$this->currentPasswordValue) {
-                $validator->validationError(
-                    $name,
-                    _t(
-                        __CLASS__ . '.CURRENT_PASSWORD_MISSING',
-                        'You must enter your current password.'
-                    ),
-                    "validation"
-                );
-                return $this->extendValidationResult(false, $validator);
-            }
-
-            // Check this password is valid for the current user
-            $member = Security::getCurrentUser();
-            if (!$member) {
-                $validator->validationError(
-                    $name,
-                    _t(
-                        __CLASS__ . '.LOGGED_IN_ERROR',
-                        "You must be logged in to change your password."
-                    ),
-                    "validation"
-                );
-                return $this->extendValidationResult(false, $validator);
-            }
-
-            // With a valid user and password, check the password is correct
-            $authenticators = Security::singleton()->getApplicableAuthenticators(Authenticator::CHECK_PASSWORD);
-            foreach ($authenticators as $authenticator) {
-                $checkResult = $authenticator->checkPassword($member, $this->currentPasswordValue);
-                if (!$checkResult->isValid()) {
-                    $validator->validationError(
+    
+            if ($this->getRequireStrongPassword()) {
+                $strongEnough = ConstraintValidator::validate(
+                    $value,
+                    new PasswordStrength(minScore: $this->getMinPasswordStrength())
+                )->isValid();
+                if (!$strongEnough) {
+                    $result->addFieldError(
                         $name,
                         _t(
-                            __CLASS__ . '.CURRENT_PASSWORD_ERROR',
-                            "The current password you have entered is not correct."
+                            __CLASS__ . '.VALIDATIONSTRONGPASSWORD',
+                            'The password strength is too low. Please use a stronger password.'
+                        ),
+                        'validation'
+                    );
+                    return;
+                }
+            }
+    
+            // Check if current password is valid
+            if (!empty($value) && $this->getRequireExistingPassword()) {
+                if (!$this->currentPasswordValue) {
+                    $result->addFieldError(
+                        $name,
+                        _t(
+                            __CLASS__ . '.CURRENT_PASSWORD_MISSING',
+                            'You must enter your current password.'
                         ),
                         "validation"
                     );
-                    return $this->extendValidationResult(false, $validator);
+                    return;
+                }
+    
+                // Check this password is valid for the current user
+                $member = Security::getCurrentUser();
+                if (!$member) {
+                    $result->addFieldError(
+                        $name,
+                        _t(
+                            __CLASS__ . '.LOGGED_IN_ERROR',
+                            "You must be logged in to change your password."
+                        ),
+                        "validation"
+                    );
+                    return;
+                }
+    
+                // With a valid user and password, check the password is correct
+                $authenticators = Security::singleton()->getApplicableAuthenticators(Authenticator::CHECK_PASSWORD);
+                foreach ($authenticators as $authenticator) {
+                    $checkResult = $authenticator->checkPassword($member, $this->currentPasswordValue);
+                    if (!$checkResult->isValid()) {
+                        $result->addFieldError(
+                            $name,
+                            _t(
+                                __CLASS__ . '.CURRENT_PASSWORD_ERROR',
+                                "The current password you have entered is not correct."
+                            ),
+                            "validation"
+                        );
+                        return;
+                    }
                 }
             }
-        }
-
-        return $this->extendValidationResult(true, $validator);
+        });
+        return parent::validate();
     }
 
     /**

@@ -4,9 +4,6 @@ namespace SilverStripe\Core\Validation\FieldValidation;
 
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Email;
-use SilverStripe\Core\Validation\FieldValidation\StringFieldValidator;
-use SilverStripe\Core\Validation\FieldValidation\SymfonyFieldValidatorTrait;
-use SilverStripe\Core\Validation\FieldValidation\SymfonyFieldValidatorInterface;
 
 /**
  * Validates that a value is a valid email address
@@ -19,6 +16,6 @@ class EmailFieldValidator extends StringFieldValidator implements SymfonyFieldVa
     public function getConstraint(): Constraint|array
     {
         $message =  _t(__CLASS__ . '.INVALID', 'Invalid email address');
-        return new Email(message: $message);
+        return new Email(message: $message, mode: Email::VALIDATION_MODE_STRICT);
     }
 }

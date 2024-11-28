@@ -25,4 +25,9 @@ class SearchableMultiDropdownField extends MultiSelectField
         $this->addExtraClass('ss-searchable-dropdown-field');
         $this->setIsMultiple(true);
     }
+
+    public function getValueForValidation(): mixed
+    {
+        return $this->getValueArray();
+    }
 }

@@ -12,18 +12,202 @@ class NumericFieldTest extends SapphireTest
 {
     protected $usesDatabase = false;
 
-    /**
-     * Test that data loaded in via Form::loadDataFrom(DataObject) will populate the field correctly,
-     * and can format the database value appropriately for the frontend
-     *
-     * @param string $locale Locale to test in
-     * @param int $scale Scale size (number of decimal places)
-     * @param string $input Input string
-     * @param int|float $output Expected data value
-     */
-    #[DataProvider('dataForTestSetValue')]
-    public function testSetValue($locale, $scale, $input, $output)
+    public static function provideSetValue()
     {
+        return [
+            // de
+            [
+                'locale' => 'de_DE',
+                'scale' => 0,
+                'input' => '13000',
+                'expDataValue' => '13000',
+                'expValue' => '13.000',
+            ],
+            [
+                'de_DE',
+                'scale' => 0,
+                'input' => '15',
+                'expDataValue' => '15',
+                'expValue' => '15',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => null,
+                'input' => '12.0',
+                'expDataValue' => '12',
+                'expValue' => '12,0',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => null,
+                'input' => '12.1',
+                'expDataValue' => '12.1',
+                'expValue' => '12,1',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 1,
+                'input' => '14000.5',
+                'expDataValue' => '14000.5',
+                'expValue' => '14.000,5',
+            ],
+            // nl
+            [
+                'locale' => 'nl_NL',
+                'scale' => 0,
+                'input' => '13000',
+                'expDataValue' => '13000',
+                'expValue' => '13.000',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 0,
+                'input' => '15',
+                'expDataValue' => '15',
+                'expValue' => '15',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => null,
+                'input' => '12.0',
+                'expDataValue' => '12',
+                'expValue' => '12,0',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => null,
+                'input' => '12.1',
+                'expDataValue' => '12.1',
+                'expValue' => '12,1',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 1,
+                'input' => '14000.5',
+                'expDataValue' => '14000.5',
+                'expValue' => '14.000,5',
+            ],
+            // fr
+            [
+                'locale' => 'fr_FR',
+                'scale' => 0,
+                'input' => '13000',
+                // With a narrow non breaking space
+                'expDataValue' => '13000',
+                'expValue' => '13 000',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 0,
+                'input' => '15',
+                'expDataValue' => '15',
+                'expValue' => '15',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => null,
+                'input' => '12.0',
+                'expDataValue' => '12',
+                'expValue' => '12,0',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => null,
+                'input' => '12.1',
+                'expDataValue' => '12.1',
+                'expValue' => '12,1',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 1,
+                'input' => '14000.5',
+                'expDataValue' => '14000.5',
+                // With a narrow non breaking space
+                'expValue' => '14 000,5',
+            ],
+            // us
+            [
+                'locale' => 'en_US',
+                'scale' => 0,
+                'input' => '13000',
+                'expDataValue' => '13000',
+                'expValue' => '13,000',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 0,
+                'input' => '15',
+                'expDataValue' => '15',
+                'expValue' => '15',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => null,
+                'input' => '12.0',
+                'expDataValue' => '12',
+                'expValue' => '12.0',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => null,
+                'input' => '12.1',
+                'expDataValue' => '12.1',
+                'expValue' => '12.1',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 1,
+                'input' => '14000.5',
+                'expDataValue' => '14000.5',
+                'expValue' => '14,000.5',
+            ],
+            // html5
+            [
+                'locale' => 'html5',
+                'scale' => 0,
+                'input' => '13000',
+                'expDataValue' => '13000',
+                'expValue' => '13000',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 0,
+                'input' => '15',
+                'expDataValue' => '15',
+                'expValue' => '15',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => null,
+                'input' => '12.0',
+                'expDataValue' => '12',
+                'expValue' => '12.0',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => null,
+                'input' => '12.1',
+                'expDataValue' => '12.1',
+                'expValue' => '12.1',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 1,
+                'input' => '14000.5',
+                'expDataValue' => '14000.5',
+                'expValue' => '14000.5',
+            ],
+        ];
+    }
+
+    #[DataProvider('provideSetValue')]
+    public function testSetValue(
+        string $locale,
+        ?int $scale,
+        string $input,
+        string $expDataValue,
+        string $expValue,
+    ): void {
         $field = new NumericField('Number');
         if ($locale === 'html5') {
             $field->setHTML5(true);
@@ -31,65 +215,10 @@ class NumericFieldTest extends SapphireTest
             $field->setLocale($locale);
         }
         $field->setScale($scale);
-
-        // Load from DB via setValue
         $field->setValue($input);
-
-        // Test value
-        $this->assertEquals(
-            $input,
-            $field->dataValue(),
-            "Expected $input loaded via dataobject to be left intact in locale $locale"
-        );
-
-        // Test expected formatted value
-        $this->assertEquals(
-            (string) $output,
-            $field->Value(),
-            "Expected $input to be formatted as $output in locale $locale"
-        );
-
-        // Input values are always valid
-        $this->assertTrue($field->validate(new RequiredFields()));
-    }
-
-    /**
-     * Test formatting of numbers
-     */
-    public static function dataForTestSetValue()
-    {
-        return [
-            // de
-            ['de_DE', 0, '13000', "13.000"],
-            ['de_DE', 0, '15', '15'],
-            ['de_DE', null, '12.0', '12,0'],
-            ['de_DE', null, '12.1', '12,1'],
-            ['de_DE', 1, '14000.5', "14.000,5"],
-            // nl
-            ['nl_NL', 0, '13000', "13.000"],
-            ['nl_NL', 0, '15', '15'],
-            ['nl_NL', null, '12.0', '12,0'],
-            ['nl_NL', null, '12.1', '12,1'],
-            ['nl_NL', 1, '14000.5', "14.000,5"],
-            // fr
-            ['fr_FR', 0, '13000', "13 000"], // With a narrow non breaking space
-            ['fr_FR', 0, '15', '15'],
-            ['fr_FR', null, '12.0', '12,0'],
-            ['fr_FR', null, '12.1', '12,1'],
-            ['fr_FR', 1, '14000.5', "14 000,5"], // With a narrow non breaking space
-            // us
-            ['en_US', 0, '13000', "13,000"],
-            ['en_US', 0, '15', '15'],
-            ['en_US', null, '12.0', '12.0'],
-            ['en_US', null, '12.1', '12.1'],
-            ['en_US', 1, '14000.5', "14,000.5"],
-            // html5
-            ['html5', 0, '13000', "13000"],
-            ['html5', 0, '15', '15'],
-            ['html5', null, '12.0', '12.0'],
-            ['html5', null, '12.1', '12.1'],
-            ['html5', 1, '14000.5', "14000.5"],
-        ];
+        $this->assertSame($expDataValue, $field->dataValue(), 'dataValue()');
+        $this->assertSame($expValue, $field->Value(), 'Value()');
+        $this->assertTrue($field->validate()->isValid(), 'isValid()');
     }
 
     public function testReadonly()
@@ -128,75 +257,344 @@ class NumericFieldTest extends SapphireTest
     public static function dataForTestSubmittedValue()
     {
         return [
-            ['de_DE', 0, '13000', 13000, '13.000'],
-            ['de_DE', 2, '12,00', 12.00],
-            ['de_DE', 2, '12.00', false],
-            ['de_DE', 1, '11 000', 11000, '11.000,0'],
-            ['de_DE', 0, '11.000', 11000],
-            ['de_DE', null, '11,000', 11.0, '11,0'],
-            ['de_DE', 1, '15 000,5', 15000.5, '15.000,5'],
-            ['de_DE', 1, '15 000.5', false],
-            ['de_DE', 1, '15.000,5', 15000.5],
-            ['de_DE', 1, '15,000.5', false],
-
-            // nl_nl (same as de)
-            ['nl_NL', 0, '13000', 13000, '13.000'],
-            ['nl_NL', 2, '12,00', 12.00],
-            ['nl_NL', 2, '12.00', false],
-            ['nl_NL', 1, '11 000', 11000, '11.000,0'],
-            ['nl_NL', 0, '11.000', 11000],
-            ['nl_NL', null, '11,000', 11.0, '11,0'],
-            ['nl_NL', 1, '15 000,5', 15000.5, '15.000,5'],
-            ['nl_NL', 1, '15 000.5', false],
-            ['nl_NL', 1, '15.000,5', 15000.5],
-            ['nl_NL', 1, '15,000.5', false],
-
-            // fr
-            ['fr_FR', 0, '13000', 13000, '13 000'], // With a narrow non breaking space
-            ['fr_FR', 2, '12,00', 12.0],
-            ['fr_FR', 2, '12.00', false],
-            ['fr_FR', 1, '11 000', 11000, '11 000,0'], // With a narrow non breaking space
-            ['fr_FR', 0, '11.000', 11000, '11 000'], // With a narrow non breaking space
-            ['fr_FR', null, '11,000', 11.000, '11,0'],
-            ['fr_FR', 1, '15 000,5', 15000.5, '15 000,5'], // With a narrow non breaking space
-            ['fr_FR', 1, '15 000.5', false],
-            ['fr_FR', 1, '15.000,5', 15000.5, '15 000,5'], // With a narrow non breaking space
-            ['fr_FR', 1, '15,000.5', false],
-            // us
-            ['en_US', 0, '13000', 13000, '13,000'],
-            ['en_US', 2, '12,00', false],
-            ['en_US', 2, '12.00', 12.00],
-            ['en_US', 1, '11 000', 11000.0, '11,000.0'],
-            ['en_US', 0, '11.000', 11, '11'],
-            ['en_US', null, '11,000', 11000, '11,000.0'],
-            ['en_US', 1, '15 000,5', false],
-            ['en_US', 1, '15 000.5', 15000.5, '15,000.5'],
-            ['en_US', 1, '15.000,5', false],
-            ['en_US', 1, '15,000.5', 15000.5],
-            // 'html5'
-            ['html5', 0, '13000', 13000, '13000'],
-            ['html5', 2, '12,00', false],
-            ['html5', 2, '12.00', 12.00],
-            ['html5', 1, '11 000', false, '11 000'],
-            ['html5', 0, '11.000', 11, '11'],
-            ['html5', null, '11,000', false],
-            ['html5', 1, '15 000,5', false],
-            ['html5', 1, '15 000.5', false],
-            ['html5', 1, '15.000,5', false],
-            ['html5', 1, '15,000.5', false],
+            [
+                'locale' => 'de_DE',
+                'scale' => 0,
+                'submittedValue' => '13000',
+                'dataValue' => '13000',
+                'cleanedInput' => '13.000',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 2,
+                'submittedValue' => '12,00',
+                'dataValue' => '12',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 2,
+                'submittedValue' => '12.00',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 1,
+                'submittedValue' => '11 000',
+                'dataValue' => '11000',
+                'cleanedInput' => '11.000,0',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 0,
+                'submittedValue' => '11.000',
+                'dataValue' => '11000',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => null,
+                'submittedValue' => '11,000',
+                'dataValue' => '11',
+                'cleanedInput' => '11,0',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 1,
+                'submittedValue' => '15 000,5',
+                'dataValue' => '15000.5',
+                'cleanedInput' => '15.000,5',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 1,
+                'submittedValue' => '15 000.5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 1,
+                'submittedValue' => '15.000,5',
+                'dataValue' => '15000.5',
+            ],
+            [
+                'locale' => 'de_DE',
+                'scale' => 1,
+                'submittedValue' => '15,000.5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 0,
+                'submittedValue' => '13000',
+                'dataValue' => '13000',
+                'cleanedInput' => '13.000',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 2,
+                'submittedValue' => '12,00',
+                'dataValue' => '12',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 2,
+                'submittedValue' => '12.00',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 1,
+                'submittedValue' => '11 000',
+                'dataValue' => '11000',
+                'cleanedInput' => '11.000,0',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 0,
+                'submittedValue' => '11.000',
+                'dataValue' => '11000',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => null,
+                'submittedValue' => '11,000',
+                'dataValue' => '11',
+                'cleanedInput' => '11,0',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 1,
+                'submittedValue' => '15 000,5',
+                'dataValue' => '15000.5',
+                'cleanedInput' => '15.000,5',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 1,
+                'submittedValue' => '15 000.5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 1,
+                'submittedValue' => '15.000,5',
+                'dataValue' => '15000.5',
+            ],
+            [
+                'locale' => 'nl_NL',
+                'scale' => 1,
+                'submittedValue' => '15,000.5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 0,
+                'submittedValue' => '13000',
+                'dataValue' => '13000',
+                // With a narrow non breaking space
+                'cleanedInput' => '13 000',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 2,
+                'submittedValue' => '12,00',
+                'dataValue' => '12',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 2,
+                'submittedValue' => '12.00',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 1,
+                'submittedValue' => '11 000',
+                'dataValue' => '11000',
+                // With a narrow non breaking space
+                'cleanedInput' => '11 000,0',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 0,
+                'submittedValue' => '11.000',
+                'dataValue' => '11000',
+                // With a narrow non breaking space
+                'cleanedInput' => '11 000',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => null,
+                'submittedValue' => '11,000',
+                'dataValue' => '11',
+                'cleanedInput' => '11,0',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 1,
+                'submittedValue' => '15 000,5',
+                'dataValue' => '15000.5',
+                // With a narrow non breaking space
+                'cleanedInput' => '15 000,5',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 1,
+                'submittedValue' => '15 000.5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 1,
+                'submittedValue' => '15.000,5',
+                'dataValue' => '15000.5',
+                // With a narrow non breaking space
+                'cleanedInput' => '15 000,5',
+            ],
+            [
+                'locale' => 'fr_FR',
+                'scale' => 1,
+                'submittedValue' => '15,000.5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 0,
+                'submittedValue' => '13000',
+                'dataValue' => '13000',
+                'cleanedInput' => '13,000',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 2,
+                'submittedValue' => '12,00',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 2,
+                'submittedValue' => '12.00',
+                'dataValue' => '12',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 1,
+                'submittedValue' => '11 000',
+                'dataValue' => '11000',
+                'cleanedInput' => '11,000.0',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 0,
+                'submittedValue' => '11.000',
+                'dataValue' => '11',
+                'cleanedInput' => '11',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => null,
+                'submittedValue' => '11,000',
+                'dataValue' => '11000',
+                'cleanedInput' => '11,000.0',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 1,
+                'submittedValue' => '15 000,5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 1,
+                'submittedValue' => '15 000.5',
+                'dataValue' => '15000.5',
+                'cleanedInput' => '15,000.5',
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 1,
+                'submittedValue' => '15.000,5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'en_US',
+                'scale' => 1,
+                'submittedValue' => '15,000.5',
+                'dataValue' => '15000.5',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 0,
+                'submittedValue' => '13000',
+                'dataValue' => '13000',
+                'cleanedInput' => '13000',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 2,
+                'submittedValue' => '12,00',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 2,
+                'submittedValue' => '12.00',
+                'dataValue' => '12',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 1,
+                'submittedValue' => '11 000',
+                'dataValue' => false,
+                'cleanedInput' => '11 000',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 0,
+                'submittedValue' => '11.000',
+                'dataValue' => '11',
+                'cleanedInput' => '11',
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => null,
+                'submittedValue' => '11,000',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 1,
+                'submittedValue' => '15 000,5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 1,
+                'submittedValue' => '15 000.5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 1,
+                'submittedValue' => '15.000,5',
+                'dataValue' => false,
+            ],
+            [
+                'locale' => 'html5',
+                'scale' => 1,
+                'submittedValue' => '15,000.5',
+                'dataValue' => false,
+            ],
         ];
     }
 
-    /**
-     * @param string $locale Locale to test in
-     * @param int $scale Scale size (number of decimal places)
-     * @param string $submittedValue Input string
-     * @param int|float $dataValue Expected data value
-     * @param string $cleanedInput
-     */
     #[DataProvider('dataForTestSubmittedValue')]
-    public function testSetSubmittedValue($locale, $scale, $submittedValue, $dataValue, $cleanedInput = null)
-    {
+    public function testSetSubmittedValue(
+        string $locale,
+        ?int $scale,
+        string $submittedValue,
+        string|false $dataValue,
+        ?string $cleanedInput = null
+    ): void {
         $field = new NumericField('Number');
         if ($locale === 'html5') {
             $field->setHTML5(true);
@@ -204,42 +602,139 @@ class NumericFieldTest extends SapphireTest
             $field->setLocale($locale);
         }
         $field->setScale($scale);
-        $validator = new RequiredFields('Number');
-
-        // Both decimal and thousands B
         $field->setSubmittedValue($submittedValue);
-
         // Check failure specific behaviour
         if ($dataValue === false) {
-            $this->assertFalse(
-                $field->validate($validator),
-                "Expect validation to fail for input $submittedValue in locale $locale"
-            );
-            $this->assertEquals(
-                0,
-                $field->dataValue(),
-                "Expect invalid value to be rewritten to 0 in locale $locale"
-            );
+            $this->assertFalse($field->validate()->isValid(), 'isValid() A');
+            $this->assertSame(false, $field->dataValue(), 'dataValue() A');
         } else {
-            $this->assertTrue(
-                $field->validate($validator),
-                "Expect validation to succeed for $submittedValue in locale $locale"
-            );
-            $this->assertEquals(
-                $dataValue,
-                $field->dataValue(),
-                "Expect value $submittedValue to be mapped to $dataValue in locale $locale"
-            );
+            $this->assertTrue($field->validate()->isValid(), 'isValid() B');
+            $this->assertSame($dataValue, $field->dataValue(), 'dataValue() B');
         }
-
         // Check that small errors are corrected for
         if (!$cleanedInput) {
             $cleanedInput = $submittedValue;
         }
-        $this->assertEquals(
-            $cleanedInput,
-            $field->Value(),
-            "Expected input $submittedValue to be cleaned up as $cleanedInput in locale $locale"
-        );
+        $this->assertSame($cleanedInput, $field->Value(), 'Value()');
+    }
+
+    public static function provideDataType(): array
+    {
+        return [
+            'int-scale-0' => [
+                'value' => 3,
+                'scale' => 0,
+                'expValue' => '3',
+                'expValueForValidation' => '3',
+                'expDataValue' => '3',
+            ],
+            'int-scale-1' => [
+                'value' => 3,
+                'scale' => 1,
+                'expValue' => '3',
+                'expValueForValidation' => '3',
+                'expDataValue' => '3',
+            ],
+            'float-scale-0' => [
+                'value' => 3.4,
+                'scale' => 0,
+                'expValue' => '3',
+                'expValueForValidation' => '3',
+                'expDataValue' => '3',
+            ],
+            'float-scale-1' => [
+                'value' => 3.4,
+                'scale' => 1,
+                'expValue' => '3.4',
+                'expValueForValidation' => '3.4',
+                'expDataValue' => '3.4',
+            ],
+            'int-string-scale-0' => [
+                'value' => '3',
+                'scale' => 0,
+                'expValue' => '3',
+                'expValueForValidation' => '3',
+                'expDataValue' => '3',
+            ],
+            'int-string-scale-1' => [
+                'value' => '3',
+                'scale' => 1,
+                'expValue' => '3',
+                'expValueForValidation' => '3',
+                'expDataValue' => '3',
+            ],
+            'float-string-scale-0' => [
+                'value' => '3.4',
+                'scale' => 0,
+                'expValue' => '3',
+                'expValueForValidation' => '3',
+                'expDataValue' => '3',
+            ],
+            'float-string-scale-1' => [
+                'value' => '3.4',
+                'scale' => 1,
+                'expValue' => '3.4',
+                'expValueForValidation' => '3.4',
+                'expDataValue' => '3.4',
+            ],
+            'null' => [
+                'value' => null,
+                'scale' => 0,
+                'expValue' => null,
+                'expValueForValidation' => null,
+                'expDataValue' => null,
+            ],
+            'bool' => [
+                'value' => true,
+                'scale' => 0,
+                'expValue' => true,
+                'expValueForValidation' => true,
+                'expDataValue' => true,
+            ],
+        ];
+    }
+
+    #[DataProvider('provideDataType')]
+    public function testDataType(
+        mixed $value,
+        int $scale,
+        mixed $expValue,
+        mixed $expValueForValidation,
+        mixed $expDataValue
+    ): void {
+        $field = new NumericField('Test');
+        $field->setScale($scale);
+        $field->setValue($value);
+        $this->assertSame($expValue, $field->getValue(), 'getValue()');
+        $this->assertSame($expValueForValidation, $field->getValueForValidation(), 'getValueForValidation()');
+        $this->assertSame($expDataValue, $field->dataValue(), 'dataValue()');
+    }
+
+    public static function provideValidateSubmittedValue(): array
+    {
+        return [
+            'valid' => [
+                'value' => '123',
+                'expected' => true,
+            ],
+            'invalid-huge-number' => [
+                'value' => '9999999999999999999999999999999999999999',
+                'expected' => false,
+            ],
+            'invalid-not-numeric' => [
+                'value' => 'fish',
+                'expected' => false,
+            ],
+        ];
+    }
+
+    #[DataProvider('provideValidateSubmittedValue')]
+    public function testValidateSubmittedValue(string $value, bool $expected): void
+    {
+        // This unit test is only only testing the validation logic contained in NumericField::validate()
+        // It is not testing the FieldValidator validation logic
+        $field = new NumericField('Test');
+        $field->setSubmittedValue($value);
+        $this->assertSame($expected, $field->validate()->isValid());
     }
 }

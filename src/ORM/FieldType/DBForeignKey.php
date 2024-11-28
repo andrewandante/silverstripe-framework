@@ -28,7 +28,9 @@ class DBForeignKey extends DBInt
     protected ?DataObject $object;
 
     private static array $field_validators = [
-        IntFieldValidator::class => ['getMinValue'],
+        IntFieldValidator::class => [
+            'minValue' => 'getMinValue',
+        ],
     ];
 
     /**

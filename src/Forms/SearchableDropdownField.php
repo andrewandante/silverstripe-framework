@@ -38,4 +38,15 @@ class SearchableDropdownField extends DropdownField implements HasOneRelationFie
         Deprecation::notice('5.2.0', 'Use setPlaceholder() instead');
         return parent::setEmptyString($string);
     }
+
+    public function getValueForValidation(): mixed
+    {
+        $arr = $this->getValueArray();
+        if (count($arr) === 0) {
+            return null;
+        } elseif (count($arr) === 1) {
+            return $arr[0];
+        }
+        return $arr;
+    }
 }

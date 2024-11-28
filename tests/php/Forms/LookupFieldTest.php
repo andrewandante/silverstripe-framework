@@ -6,10 +6,37 @@ use SilverStripe\ORM\DataObject;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\LookupField;
 use SilverStripe\Security\Member;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class LookupFieldTest extends SapphireTest
 {
     protected static $fixture_file = 'LookupFieldTest.yml';
+
+    public static function provideValidate(): array
+    {
+        return [
+            'valid-value' => [
+                'value' => [1],
+                'expected' => true,
+            ],
+            // test that validation isn't being applied to read-only field
+            'valid-not-value' => [
+                'value' => [3],
+                'expected' => true,
+            ],
+        ];
+    }
+
+    /**
+     * @useDatabase false
+     */
+    #[DataProvider('provideValidate')]
+    public function testValidate(mixed $value, bool $expected): void
+    {
+        $field = new LookupField('Test', 'Test', [1 => 'cat', 2 => 'dog']);
+        $field->setValue($value);
+        $this->assertSame($expected, $field->validate()->isValid());
+    }
 
     public function testNullValueWithNumericArraySource()
     {

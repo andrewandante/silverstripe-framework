@@ -134,18 +134,6 @@ class OptionsetField extends SingleSelectField
         return FormField::Field($properties);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function validate($validator)
-    {
-        if (!$this->Value()) {
-            return $this->extendValidationResult(true, $validator);
-        }
-
-        return parent::validate($validator);
-    }
-
     public function getAttributes()
     {
         $attributes = array_merge(

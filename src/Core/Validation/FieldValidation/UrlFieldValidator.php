@@ -4,9 +4,6 @@ namespace SilverStripe\Core\Validation\FieldValidation;
 
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Url;
-use SilverStripe\Core\Validation\FieldValidation\StringFieldValidator;
-use SilverStripe\Core\Validation\FieldValidation\SymfonyFieldValidatorTrait;
-use SilverStripe\Core\Validation\FieldValidation\SymfonyFieldValidatorInterface;
 
 /**
  * Validates that a value is a valid URL

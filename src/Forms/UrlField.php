@@ -4,6 +4,7 @@ namespace SilverStripe\Forms;
 
 use SilverStripe\Core\Validation\ConstraintValidator;
 use Symfony\Component\Validator\Constraints\Url;
+use SilverStripe\Core\Validation\ValidationResult;
 
 /**
  * Text input field with validation for a url
@@ -30,26 +31,27 @@ class UrlField extends TextField
         return 'text url';
     }
 
-    public function validate($validator)
+    public function validate(): ValidationResult
     {
-        $allowedProtocols = $this->getAllowedProtocols();
-        $message = _t(
-            __CLASS__ . '.INVALID_WITH_PROTOCOL',
-            'Please enter a valid URL including a protocol, e.g {protocol}://example.com',
-            ['protocol' => $allowedProtocols[0]]
-        );
-        $result = ConstraintValidator::validate(
-            $this->value,
-            new Url(
-                message: $message,
-                protocols: $allowedProtocols,
-                relativeProtocol: $this->getAllowRelativeProtocol()
-            ),
-            $this->getName()
-        );
-        $validator->getResult()->combineAnd($result);
-        $isValid = $result->isValid();
-        return $this->extendValidationResult($isValid, $validator);
+        $this->beforeExtending('updateValidate', function (ValidationResult $result) {
+            $allowedProtocols = $this->getAllowedProtocols();
+            $message = _t(
+                __CLASS__ . '.INVALID_WITH_PROTOCOL',
+                'Please enter a valid URL including a protocol, e.g {protocol}://example.com',
+                ['protocol' => $allowedProtocols[0]]
+            );
+            $constraitResult = ConstraintValidator::validate(
+                $this->value,
+                new Url(
+                    message: $message,
+                    protocols: $allowedProtocols,
+                    relativeProtocol: $this->getAllowRelativeProtocol()
+                ),
+                $this->getName()
+            );
+            $result->combineAnd($constraitResult);
+        });
+        return parent::validate();
     }
 
     /**

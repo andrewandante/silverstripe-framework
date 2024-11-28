@@ -4,8 +4,10 @@ namespace SilverStripe\Forms;
 
 use InvalidArgumentException;
 use SilverStripe\Core\ArrayLib;
+use SilverStripe\Core\Validation\FieldValidation\CompositeFieldValidator;
 use SilverStripe\ORM\FieldType\DBMoney;
 use SilverStripe\ORM\DataObjectInterface;
+use SilverStripe\Core\Validation\ValidationResult;
 
 /**
  * A form field that can save into a {@link Money} database field.
@@ -16,6 +18,9 @@ use SilverStripe\ORM\DataObjectInterface;
  */
 class MoneyField extends FormField
 {
+    private static array $field_validators = [
+        CompositeFieldValidator::class,
+    ];
 
     protected $schemaDataType = 'MoneyField';
 
@@ -88,26 +93,30 @@ class MoneyField extends FormField
      *
      * @return FormField
      */
-    protected function buildCurrencyField()
+    protected function buildCurrencyField(bool $forceTextField = false)
     {
         $name = $this->getName();
+        $field = null;
 
         // Validate allowed currencies
         $currencyValue = $this->fieldCurrency ? $this->fieldCurrency->dataValue() : null;
-        $allowedCurrencies = $this->getAllowedCurrencies();
-        if (count($allowedCurrencies ?? []) === 1) {
-            // Hidden field for single currency
-            $field = HiddenField::create("{$name}[Currency]");
-            reset($allowedCurrencies);
-            $currencyValue = key($allowedCurrencies ?? []);
-        } elseif ($allowedCurrencies) {
-            // Dropdown field for multiple currencies
-            $field = DropdownField::create(
-                "{$name}[Currency]",
-                _t('SilverStripe\\Forms\\MoneyField.FIELDLABELCURRENCY', 'Currency'),
-                $allowedCurrencies
-            );
-        } else {
+        if (!$forceTextField) {
+            $allowedCurrencies = $this->getAllowedCurrencies();
+            if (count($allowedCurrencies ?? []) === 1) {
+                // Hidden field for single currency
+                $field = HiddenField::create("{$name}[Currency]");
+                reset($allowedCurrencies);
+                $currencyValue = key($allowedCurrencies ?? []);
+            } elseif ($allowedCurrencies) {
+                // Dropdown field for multiple currencies
+                $field = DropdownField::create(
+                    "{$name}[Currency]",
+                    _t('SilverStripe\\Forms\\MoneyField.FIELDLABELCURRENCY', 'Currency'),
+                    $allowedCurrencies
+                );
+            }
+        }
+        if ($field === null) {
             // Free-text entry for currency value
             $field = TextField::create(
                 "{$name}[Currency]",
@@ -175,8 +184,16 @@ class MoneyField extends FormField
             throw new InvalidArgumentException("Invalid currency format");
         }
 
+        // Check that currency is allowed, if not, swap out currency field for a text field so
+        // that user can alter the value as it will fail validation
+        $allowedCurrencies = $this->getAllowedCurrencies() ?? [];
+        $currency = $value['Currency'];
+        if ($currency && count($allowedCurrencies) && !in_array($currency, $allowedCurrencies)) {
+            $this->fieldCurrency = $this->buildCurrencyField(true);
+        }
+
         // Save value
-        $this->fieldCurrency->setValue($value['Currency'], $value);
+        $this->fieldCurrency->setValue($currency, $value);
         $this->fieldAmount->setValue($value['Amount'], $value);
         $this->value = $this->dataValue();
         return $this;
@@ -321,32 +338,32 @@ class MoneyField extends FormField
         return $this->fieldAmount->getLocale();
     }
 
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
+    public function getValueForValidation(): mixed
     {
-        // Validate currency
-        $currencies = $this->getAllowedCurrencies();
-        $currency = $this->fieldCurrency->dataValue();
-        if ($currency && $currencies && !in_array($currency, $currencies ?? [])) {
-            $validator->validationError(
-                $this->getName(),
-                _t(
-                    __CLASS__ . '.INVALID_CURRENCY',
-                    'Currency {currency} is not in the list of allowed currencies',
-                    ['currency' => $currency]
-                )
-            );
-            return $this->extendValidationResult(false, $validator);
-        }
+        return [$this->getAmountField(), $this->getCurrencyField()];
+    }
 
-        // Field-specific validation
-        $result = $this->fieldAmount->validate($validator) && $this->fieldCurrency->validate($validator);
-        return $this->extendValidationResult($result, $validator);
+    public function validate(): ValidationResult
+    {
+        $this->beforeExtending('updateValidate', function (ValidationResult $result) {
+            // Validate currency
+            $currencies = $this->getAllowedCurrencies();
+            $currency = $this->fieldCurrency->dataValue();
+            if ($currency && $currencies && !in_array($currency, $currencies ?? [])) {
+                $result->addFieldError(
+                    $this->getName(),
+                    _t(
+                        __CLASS__ . '.INVALID_CURRENCY_2',
+                        'Currency {currency} is not in the list of allowed currencies. Allowed currencies are: {currencies}.',
+                        [
+                            'currency' => $currency,
+                            'currencies' => implode(', ', $currencies),
+                        ]
+                    )
+                );
+            }
+        });
+        return parent::validate();
     }
 
     public function setForm($form)

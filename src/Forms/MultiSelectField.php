@@ -6,6 +6,8 @@ use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectInterface;
 use SilverStripe\ORM\FieldType\DBMultiEnum;
 use SilverStripe\ORM\Relation;
+use SilverStripe\Core\Validation\FieldValidation\MultiOptionFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\OptionFieldValidator;
 
 /**
  * Represents a SelectField that may potentially have multiple selections, and may have
@@ -13,6 +15,12 @@ use SilverStripe\ORM\Relation;
  */
 abstract class MultiSelectField extends SelectField
 {
+    private static array $field_validators = [
+        OptionFieldValidator::class => null,
+        MultiOptionFieldValidator::class => [
+            'options' => 'getValidValues',
+        ],
+    ];
 
     /**
      * List of items to mark as checked, and may not be unchecked
@@ -72,9 +80,32 @@ abstract class MultiSelectField extends SelectField
         if ($obj instanceof DataObject) {
             $this->loadFrom($obj);
         } else {
-            parent::setValue($value);
+            parent::setValue($value, $obj);
         }
         return $this;
+    }
+
+    public function getValueForValidation(): mixed
+    {
+        $value = $this->getValue();
+        if (is_array($value)) {
+            foreach ($value as $key => $val) {
+                if (is_numeric($val) && is_string($val)) {
+                    $value[$key] = $this->castSubmittedValue($val);
+                }
+            }
+        }
+        return $value;
+    }
+
+    public function setSubmittedValue($value, $data = null)
+    {
+        // When no value is selected and a regular edit form is submitted,
+        // usually an empty string will be POSTed e.g. `MyField[]: ""`
+        if ($value === ['']) {
+            $value = null;
+        }
+        return parent::setSubmittedValue($value, $data);
     }
 
     /**
@@ -221,49 +252,6 @@ abstract class MultiSelectField extends SelectField
         }
 
         return preg_split('/\s*,\s*/', trim($value ?? ''));
-    }
-
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        $values = $this->getValueArray();
-        $validValues = $this->getValidValues();
-
-        // Filter out selected values not in the data source
-        $self = $this;
-        $invalidValues = array_filter(
-            $values ?? [],
-            function ($userValue) use ($self, $validValues) {
-                foreach ($validValues as $formValue) {
-                    if ($self->isSelectedValue($formValue, $userValue)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        );
-
-        $result = true;
-        if (!empty($invalidValues)) {
-            $result = false;
-            // List invalid items
-            $validator->validationError(
-                $this->getName(),
-                _t(
-                    'SilverStripe\\Forms\\MultiSelectField.SOURCE_VALIDATION',
-                    "Please select values within the list provided. Invalid option(s) {value} given",
-                    ['value' => implode(',', $invalidValues)]
-                ),
-                "validation"
-            );
-        }
-
-        return $this->extendValidationResult($result, $validator);
     }
 
     /**

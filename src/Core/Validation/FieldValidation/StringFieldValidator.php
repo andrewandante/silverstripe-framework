@@ -4,7 +4,6 @@ namespace SilverStripe\Core\Validation\FieldValidation;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Validation\ValidationResult;
-use SilverStripe\Core\Validation\FieldValidation\FieldValidator;
 
 /**
  * Validates that a value is a string and optionally checks its multi-byte length.
@@ -61,7 +60,7 @@ class StringFieldValidator extends FieldValidator
         if (!is_null($this->maxLength) && $len > $this->maxLength) {
             $message = _t(
                 __CLASS__ . '.TOOLONG',
-                'Can not have more than {maxLength} characters',
+                'Cannot have more than {maxLength} characters',
                 ['maxLength' => $this->maxLength]
             );
             $result->addFieldError($this->name, $message);

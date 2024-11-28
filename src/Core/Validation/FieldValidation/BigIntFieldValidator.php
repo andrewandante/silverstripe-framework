@@ -3,7 +3,6 @@
 namespace SilverStripe\Core\Validation\FieldValidation;
 
 use RunTimeException;
-use SilverStripe\Core\Validation\FieldValidation\IntFieldValidator;
 use SilverStripe\Core\Validation\ValidationResult;
 
 /**

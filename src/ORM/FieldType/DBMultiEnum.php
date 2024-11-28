@@ -21,7 +21,9 @@ class DBMultiEnum extends DBEnum
         StringFieldValidator::class => null,
         OptionFieldValidator::class => null,
         // enable multi enum field validator
-        MultiOptionFieldValidator::class => ['getEnum'],
+        MultiOptionFieldValidator::class => [
+            'options' => 'getEnum'
+        ],
     ];
 
     public function __construct($name = null, $enum = null, $default = null)

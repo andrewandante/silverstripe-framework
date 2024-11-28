@@ -4,9 +4,12 @@ namespace SilverStripe\Forms;
 
 use IntlDateFormatter;
 use InvalidArgumentException;
+use SilverStripe\Core\Validation\FieldValidation\TimeFieldValidator;
 use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\FieldType\DBTime;
+use SilverStripe\Forms\FieldValidatorConverter\FieldValidatorConverterTrait;
+use SilverStripe\Forms\FieldValidatorConverter\FieldValidatorConverterInterface;
 
 /**
  * Form field to display editable time values in an <input type="text"> field.
@@ -15,8 +18,18 @@ use SilverStripe\ORM\FieldType\DBTime;
  *
  * See {@link DateField}
  */
-class TimeField extends TextField
+class TimeField extends TextField implements FieldValidatorConverterInterface
 {
+    use FieldValidatorConverterTrait;
+
+    private static array $field_validators = [
+        TimeFieldValidator::class => [
+            'minValue' => null,
+            'maxValue' => null,
+            'converter' => 'getFieldValidatorConverter',
+        ],
+    ];
+
     protected $schemaDataType = FormField::SCHEMA_DATA_TYPE_TIME;
 
     /**
@@ -42,15 +55,6 @@ class TimeField extends TextField
      * @var int
      */
     protected $timeLength = null;
-
-    /**
-     * Unparsed value, used exclusively for comparing with internal value
-     * to detect invalid values.
-     *
-     * @var mixed
-     * @deprecated 5.4.0 Use $value instead
-     */
-    protected $rawValue = null;
 
     /**
      * Set custom timezone
@@ -257,9 +261,6 @@ class TimeField extends TextField
      */
     public function setSubmittedValue($value, $data = null)
     {
-        // Save raw value for later validation
-        $this->rawValue = $value;
-
         // Parse from submitted value
         $this->value = $this->frontendToInternal($value);
         return $this;
@@ -274,17 +275,8 @@ class TimeField extends TextField
      */
     public function setValue($value, $data = null)
     {
-        // Save raw value for later validation
-        $this->rawValue = $value;
-
-        // Null case
-        if (!$value) {
-            $this->value = null;
-            return $this;
-        }
-
         // Re-run through formatter to tidy up (e.g. remove date component)
-        $this->value = $this->tidyInternal($value);
+        $this->value = $this->tidyInternal($value, false);
         return $this;
     }
 
@@ -294,9 +286,18 @@ class TimeField extends TextField
         if ($localised) {
             return $localised;
         }
-
         // Show midnight in localised format
         return $this->getMidnight();
+    }
+
+    public function getValueForValidation(): mixed
+    {
+        // new TimeField('MyTime') ... getValue() will return empty string
+        // return null so that validation is skipped
+        if ($this->getValue() === '') {
+            return null;
+        }
+        return $this->value;
     }
 
     /**
@@ -311,37 +312,6 @@ class TimeField extends TextField
             return strtotime('midnight');
         });
         return $formatter->format($timestamp);
-    }
-
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        // Don't validate empty fields
-        if (empty($this->rawValue)) {
-            return $this->extendValidationResult(true, $validator);
-        }
-
-        $result = true;
-        // We submitted a value, but it couldn't be parsed
-        if (empty($this->value)) {
-            $validator->validationError(
-                $this->name,
-                _t(
-                    'SilverStripe\\Forms\\TimeField.VALIDATEFORMAT',
-                    "Please enter a valid time format ({format})",
-                    ['format' => $this->getTimeFormat()]
-                )
-            );
-            $result = false;
-        }
-
-        $this->extendValidationResult($result, $validator);
-        return $result;
     }
 
     /**
@@ -421,12 +391,11 @@ class TimeField extends TextField
      * as defined by {@link $timeFormat}. With $html5=true, the frontend time will also be
      * in ISO 8601.
      *
-     * @param string $time
-     * @return string
+     * @return null|string The formatted time, or null if not a valid time
      */
-    protected function internalToFrontend($time)
+    public function internalToFrontend(mixed $value): ?string
     {
-        $time = $this->tidyInternal($time);
+        $time = $this->tidyInternal($value, true);
         if (!$time) {
             return null;
         }
@@ -439,18 +408,17 @@ class TimeField extends TextField
         return $toFormatter->format($timestamp);
     }
 
-
-
     /**
      * Tidy up the internal time representation (ISO 8601),
      * and fall back to strtotime() if there's parsing errors.
      *
-     * @param string $time Time in ISO 8601 or approximate form
-     * @return string ISO 8601 time, or null if not valid
+     * @param mixed $time Time in ISO 8601 or approximate form
+     * @param bool $returnNullOnFailure return null if the time is not valid, or the original time
+     * @return null|string ISO 8601 time or null
      */
-    protected function tidyInternal($time)
+    protected function tidyInternal(mixed $time, bool $returnNullOnFailure): ?string
     {
-        if (!$time) {
+        if (is_null($time)) {
             return null;
         }
         // Re-run through formatter to tidy up (e.g. remove date component)
@@ -460,10 +428,14 @@ class TimeField extends TextField
             // Fallback to strtotime
             $timestamp = strtotime($time ?? '', DBDatetime::now()->getTimestamp());
             if ($timestamp === false) {
-                return null;
+                return $returnNullOnFailure ? null : $time;
             }
         }
-        return $formatter->format($timestamp);
+        $formatted = $formatter->format($timestamp);
+        if ($formatted === false) {
+            return $returnNullOnFailure ? null : $time;
+        }
+        return $formatted;
     }
 
     /**
@@ -486,7 +458,6 @@ class TimeField extends TextField
         $this->timezone = $timezone;
         return $this;
     }
-
 
     /**
      * Run a callback within a specific timezone

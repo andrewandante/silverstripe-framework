@@ -16,7 +16,8 @@ use SilverStripe\View\AttributesHTML;
 use SilverStripe\View\SSViewer;
 use SilverStripe\Model\ModelData;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\Dev\Deprecation;
+use SilverStripe\Core\Validation\FieldValidation\FieldValidationTrait;
+use SilverStripe\Core\Validation\FieldValidation\FieldValidationInterface;
 
 /**
  * Represents a field in a form.
@@ -42,10 +43,11 @@ use SilverStripe\Dev\Deprecation;
  * including both structure (name, id, attributes, etc.) and state (field value).
  * Can be used by for JSON data which is consumed by a front-end application.
  */
-class FormField extends RequestHandler
+class FormField extends RequestHandler implements FieldValidationInterface
 {
     use AttributesHTML;
     use FormMessage;
+    use FieldValidationTrait;
 
     /** @see $schemaDataType */
     const SCHEMA_DATA_TYPE_STRING = 'String';
@@ -429,9 +431,9 @@ class FormField extends RequestHandler
     /**
      * Returns the field name.
      */
-    public function getName()
+    public function getName(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**
@@ -445,12 +447,30 @@ class FormField extends RequestHandler
     }
 
     /**
-     * Returns the field value.
+     * Returns the internal value of the field
+     */
+    public function getValue(): mixed
+    {
+        return $this->value;
+    }
+
+    /**
+     * Returns the value of the field which may be modified for display purposes
+     * for instance to add localisation or formatting.
      *
-     * @see FormField::setSubmittedValue()
      * @return mixed
      */
     public function Value()
+    {
+        return $this->value;
+    }
+
+    /**
+     * Returns the value of the field suitable for insertion into the database.
+     *
+     * @return mixed
+     */
+    public function dataValue()
     {
         return $this->value;
     }
@@ -481,16 +501,6 @@ class FormField extends RequestHandler
         } else {
             $record->setCastedField($this->name, $this->dataValue());
         }
-    }
-
-    /**
-     * Returns the field value suitable for insertion into the data object.
-     * @see Formfield::setValue()
-     * @return mixed
-     */
-    public function dataValue()
-    {
-        return $this->value;
     }
 
     /**
@@ -706,6 +716,9 @@ class FormField extends RequestHandler
      */
     public function setValue($value, $data = null)
     {
+        // Note that unlike setSubmittedValue(), we are explicity not casting blank strings to null here.
+        // This is because setValue() is used when programatically setting a value on a field
+        // and we want to enforce type strictness
         $this->value = $value;
         return $this;
     }
@@ -721,6 +734,13 @@ class FormField extends RequestHandler
      */
     public function setSubmittedValue($value, $data = null)
     {
+        // Most form sumissions will be strings, this includes for fields whose backing DBField
+        // has a numeric type, such as DBInt and DBFloat.
+        // FormFields are not aware of the DBField type they are backed by
+        // Cast blank strings to null so they don't fail DBField validation on numeric DBFields
+        if ($value === '') {
+            $value = null;
+        }
         return $this->setValue($value, $data);
     }
 
@@ -1222,35 +1242,17 @@ class FormField extends RequestHandler
     }
 
     /**
-     * Utility method to call an extension hook which allows the result of validate() calls to be adjusted
-     *
-     * @param bool $result
-     * @param Validator $validator
-     * @return bool
-     * @deprecated 5.4.0 Use extend() directly instead
+     * Determines whether the field is valid or not based on its value
      */
-    protected function extendValidationResult(bool $result, Validator $validator): bool
+    public function validate(): ValidationResult
     {
-        Deprecation::notice('5.4.0', 'Use extend() directly instead');
-        $this->extend('updateValidationResult', $result, $validator);
+        $result = ValidationResult::create();
+        $fieldValidators = $this->getFieldValidators();
+        foreach ($fieldValidators as $fieldValidator) {
+            $result->combineAnd($fieldValidator->validate());
+        }
+        $this->extend('updateValidate', $result);
         return $result;
-    }
-
-    /**
-     * Abstract method each {@link FormField} subclass must implement, determines whether the field
-     * is valid or not based on the value.
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        Deprecation::noticeWithNoReplacment(
-            '5.4.0',
-            'This method will take zero arguments and return a ValidationResult'
-            . ' object instead of a boolean in CMS 6.0.0'
-        );
-        return $this->extendValidationResult(true, $validator);
     }
 
     /**

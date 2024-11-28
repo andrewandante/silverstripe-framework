@@ -3,7 +3,6 @@
 namespace SilverStripe\Core\Validation\FieldValidation;
 
 use SilverStripe\Core\Validation\ValidationResult;
-use SilverStripe\Core\Validation\FieldValidation\NumericFieldValidator;
 
 /**
  * Validates that a value is a valid decimal
@@ -23,7 +22,7 @@ use SilverStripe\Core\Validation\FieldValidation\NumericFieldValidator;
  * 1234.9 - 4 digits the before the decimal point
  * 999.999 - would be rounded to 1000.00 which exceeds 5 total digits
  */
-class DecimalFieldValidator extends NumericFieldValidator
+class DecimalFieldValidator extends NumericNonStringFieldValidator
 {
     /**
      * Whole number size e.g. For Decimal(9,2) this would be 9

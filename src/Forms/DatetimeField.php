@@ -7,7 +7,9 @@ use InvalidArgumentException;
 use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBDatetime;
-use SilverStripe\Core\Validation\ValidationResult;
+use SilverStripe\Core\Validation\FieldValidation\DatetimeFieldValidator;
+use SilverStripe\Forms\FieldValidatorConverter\FieldValidatorConverterTrait;
+use SilverStripe\Forms\FieldValidatorConverter\FieldValidatorConverterInterface;
 
 /**
  * Form field used for editing date time strings.
@@ -16,8 +18,17 @@ use SilverStripe\Core\Validation\ValidationResult;
  * Data is passed on via {@link dataValue()} with whitespace separators.
  * The {@link $value} property is always in ISO 8601 format, in the server timezone.
  */
-class DatetimeField extends TextField
+class DatetimeField extends TextField implements FieldValidatorConverterInterface
 {
+    use FieldValidatorConverterTrait;
+
+    private static array $field_validators = [
+        DatetimeFieldValidator::class => [
+            'minValue' => 'getMinDatetime',
+            'maxValue' => 'getMaxDatetime',
+            'converter' => 'getFieldValidatorConverter'
+        ],
+    ];
 
     /**
      * @var bool
@@ -69,15 +80,6 @@ class DatetimeField extends TextField
      * @var int
      */
     protected $timeLength = null;
-
-    /**
-     * Unparsed value, used exclusively for comparing with internal value
-     * to detect invalid values.
-     *
-     * @var mixed
-     * @deprecated 5.4.0 Use $value instead
-     */
-    protected $rawValue = null;
 
     /**
      * @inheritDoc
@@ -159,9 +161,6 @@ class DatetimeField extends TextField
      */
     public function setSubmittedValue($value, $data = null)
     {
-        // Save raw value for later validation
-        $this->rawValue = $value;
-
         // Null case
         if (!$value) {
             $this->value = null;
@@ -325,11 +324,7 @@ class DatetimeField extends TextField
      */
     public function setValue($value, $data = null)
     {
-        // Save raw value for later validation
-        $this->rawValue = $value;
-
-        // Empty value
-        if (empty($value)) {
+        if (is_null($value)) {
             $this->value = null;
             return $this;
         }
@@ -347,6 +342,7 @@ class DatetimeField extends TextField
         }
 
         if ($timestamp === false) {
+            $this->value = $value;
             return $this;
         }
 
@@ -371,17 +367,26 @@ class DatetimeField extends TextField
         return $this->internalToFrontend($this->value);
     }
 
+    public function getValueForValidation(): mixed
+    {
+        // new DatetimeField('MyDatetime') ... getValue() will return empty string
+        // return null so that validation is skipped
+        if ($this->getValue() === '') {
+            return null;
+        }
+        return $this->value;
+    }
+
     /**
      * Convert the internal date representation (ISO 8601) to a format used by the frontend,
      * as defined by {@link $dateFormat}. With $html5=true, the frontend date will also be
      * in ISO 8601.
      *
-     * @param string $datetime
-     * @return string The formatted date and time, or null if not a valid date and time
+     * @return null|string The formatted date and time, or null if not a valid date and time
      */
-    public function internalToFrontend($datetime)
+    public function internalToFrontend(mixed $value): ?string
     {
-        $datetime = $this->tidyInternal($datetime);
+        $datetime = $this->tidyInternal($value, true);
         if (!$datetime) {
             return null;
         }
@@ -399,22 +404,23 @@ class DatetimeField extends TextField
      * Tidy up the internal date representation (ISO 8601),
      * and fall back to strtotime() if there's parsing errors.
      *
-     * @param string $datetime Date in ISO 8601 or approximate form
-     * @return string ISO 8601 date, or null if not valid
+     * @param mixed $datetime Date in ISO 8601 or approximate form
+     * @param bool $returnNullOnFailure return null if the datetime is not valid, or the original datetime
+     * @return null|string ISO 8601 date or null
      */
-    public function tidyInternal($datetime)
+    public function tidyInternal(mixed $datetime, bool $returnNullOnFailure): ?string
     {
-        if (!$datetime) {
+        if (is_null($datetime)) {
             return null;
         }
-        // Re-run through formatter to tidy up (e.g. remove time component)
+        // Re-run through formatter to tidy up
         $formatter = $this->getInternalFormatter();
         $timestamp = $formatter->parse($datetime);
         if ($timestamp === false) {
             // Fallback to strtotime
             $timestamp = strtotime($datetime ?? '', DBDatetime::now()->getTimestamp());
             if ($timestamp === false) {
-                return null;
+                return $returnNullOnFailure ? null : $datetime;
             }
         }
         return $formatter->format($timestamp);
@@ -536,7 +542,7 @@ class DatetimeField extends TextField
      */
     public function setMinDatetime($minDatetime)
     {
-        $this->minDatetime = $this->tidyInternal($minDatetime);
+        $this->minDatetime = $this->tidyInternal($minDatetime, true);
         return $this;
     }
 
@@ -554,85 +560,8 @@ class DatetimeField extends TextField
      */
     public function setMaxDatetime($maxDatetime)
     {
-        $this->maxDatetime = $this->tidyInternal($maxDatetime);
+        $this->maxDatetime = $this->tidyInternal($maxDatetime, true);
         return $this;
-    }
-
-    /**
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        // Don't validate empty fields
-        if (empty($this->rawValue)) {
-            return $this->extendValidationResult(true, $validator);
-        }
-
-        // We submitted a value, but it couldn't be parsed
-        if (empty($this->value)) {
-            $validator->validationError(
-                $this->name,
-                _t(
-                    __CLASS__ . '.VALIDDATETIMEFORMAT',
-                    "Please enter a valid date and time format ({format})",
-                    ['format' => $this->getDatetimeFormat()]
-                )
-            );
-            return $this->extendValidationResult(false, $validator);
-        }
-
-        // Check min date (in server timezone)
-        $min = $this->getMinDatetime();
-        if ($min) {
-            $oops = strtotime($this->value ?? '') < strtotime($min ?? '');
-            if ($oops) {
-                $validator->validationError(
-                    $this->name,
-                    _t(
-                        __CLASS__ . '.VALIDDATETIMEMINDATE',
-                        "Your date has to be newer or matching the minimum allowed date and time ({datetime})",
-                        [
-                            'datetime' => sprintf(
-                                '<time datetime="%s">%s</time>',
-                                $min,
-                                $this->internalToFrontend($min)
-                            )
-                        ]
-                    ),
-                    ValidationResult::TYPE_ERROR,
-                    ValidationResult::CAST_HTML
-                );
-                return $this->extendValidationResult(false, $validator);
-            }
-        }
-
-        // Check max date (in server timezone)
-        $max = $this->getMaxDatetime();
-        if ($max) {
-            $oops = strtotime($this->value ?? '') > strtotime($max ?? '');
-            if ($oops) {
-                $validator->validationError(
-                    $this->name,
-                    _t(
-                        __CLASS__ . '.VALIDDATEMAXDATETIME',
-                        "Your date has to be older or matching the maximum allowed date and time ({datetime})",
-                        [
-                            'datetime' => sprintf(
-                                '<time datetime="%s">%s</time>',
-                                $max,
-                                $this->internalToFrontend($max)
-                            )
-                        ]
-                    ),
-                    ValidationResult::TYPE_ERROR,
-                    ValidationResult::CAST_HTML
-                );
-                return $this->extendValidationResult(false, $validator);
-            }
-        }
-
-        return $this->extendValidationResult(true, $validator);
     }
 
     public function performReadonlyTransformation()

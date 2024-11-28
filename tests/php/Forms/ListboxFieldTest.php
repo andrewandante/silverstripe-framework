@@ -11,10 +11,10 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\ListboxField;
 use SilverStripe\Forms\RequiredFields;
 use SilverStripe\Model\ArrayData;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class ListboxFieldTest extends SapphireTest
 {
-
     protected static $fixture_file = 'ListboxFieldTest.yml';
 
     protected static $extra_dataobjects = [
@@ -173,74 +173,63 @@ class ListboxFieldTest extends SapphireTest
         $this->assertEquals('selected', (string)$optEls[2]['selected']);
     }
 
-    public function testValidationWithArray()
+    public static function provideSetValueValidation(): array
     {
-        //test with array input
-        $field = ListboxField::create(
-            'Test',
-            'Testing',
-            [
-            1 => "One",
-            2 => "Two",
-            3 => "Three"
-            ]
-        );
-        $validator = new RequiredFields();
+        return [
+            'valid-single' => [
+                'value' => 1,
+                'expected' => true,
+            ],
+            'valid-single-array' => [
+                'value' => [1],
+                'expected' => true,
+            ],
+            'valid-multi-array' => [
+                'value' => [1, 2],
+                'expected' => true,
+            ],
+            'invalid-single' => [
+                'value' => 4,
+                'expected' => false,
+            ],
+            'invalid-array' => [
+                'value' => [4],
+                'expected' => false,
+            ],
+            'invalid-mix' => [
+                'value' => [1, 4],
+                'expected' => false,
+            ],
+        ];
+    }
 
-        $field->setValue(1);
-        $this->assertTrue(
-            $field->validate($validator),
-            'Validates values in source map'
-        );
-        $field->setValue([1]);
-        $this->assertTrue(
-            $field->validate($validator),
-            'Validates values within source array'
-        );
-        //non valid value should fail
-        $field->setValue(4);
-        $this->assertFalse(
-            $field->validate($validator),
-            'Does not validates values not within source array'
-        );
+    /**
+     * @useDatabase false
+     */
+    #[DataProvider('provideSetValueValidation')]
+    public function testSetValueValidation(int|array $value, bool $expected): void
+    {
+        $field = new ListBoxField('Test', 'Testing', [1 => 'One', 2 => 'Two']);
+        $field->setValue($value);
+        $actual = $field->validate()->isValid();
+        $this->assertSame($expected, $actual);
     }
 
     public function testValidationWithDataList()
     {
-        //test with datalist input
         $tag1 = $this->objFromFixture(Tag::class, 'tag1');
         $tag2 = $this->objFromFixture(Tag::class, 'tag2');
         $tag3 = $this->objFromFixture(Tag::class, 'tag3');
         $field = ListboxField::create('Test', 'Testing', DataObject::get(Tag::class)->map()->toArray());
-        $validator = new RequiredFields();
-
-        $field->setValue(
-            $tag1->ID
-        );
-        $this->assertTrue(
-            $field->validate($validator),
-            'Field validates values in source map'
-        );
-
-        $field->setValue(
-            false,
-            new ArrayData(
-                [
-                $tag1->ID => $tag1->ID,
-                $tag2->ID => $tag2->ID
-                ]
-            )
-        );
-        $this->assertTrue(
-            $field->validate($validator),
-            'Validates values in source map'
-        );
-        //invalid value should fail
-        $field->setValue(4);
-        $this->assertFalse(
-            $field->validate($validator),
-            'Does not validate values not within source map'
-        );
+        $invalidID = Tag::get()->max('ID') + 1;
+        $field->setValue($tag1->ID);
+        $this->assertTrue($field->validate()->isValid());
+        $field->setValue([$tag1->ID, $tag2->ID]);
+        $this->assertTrue($field->validate()->isValid());
+        $field->setValue($invalidID);
+        $this->assertFalse($field->validate()->isValid());
+        $field->setValue([$tag1->ID, $invalidID]);
+        $this->assertFalse($field->validate()->isValid());
     }
 
     public function testFieldWithDefaultItems()
@@ -251,8 +240,6 @@ class ListboxFieldTest extends SapphireTest
         $tag3 = $this->objFromFixture(Tag::class, 'tag3');
         $field = new ListboxField("Tags", "Test field", DataObject::get(Tag::class)->map()->toArray());
         $field->setDefaultItems([$tag1->ID, $tag2->ID]);
-
-
         $field->setValue(null, $articleWithTags);
         $field->setDisabledItems([$tag1->ID, $tag3->ID]);
 
@@ -275,5 +262,35 @@ class ListboxFieldTest extends SapphireTest
             '1, 2',
             '' . $p->getByXpath('//input')[0]['value']
         );
+    }
+
+    public static function provideGetValueForValidation(): array
+    {
+        return [
+            'not-array' => [
+                'value' => 'cat',
+                'expected' => ['cat'],
+            ],
+            'array' => [
+                'value' => ['cat'],
+                'expected' => ['cat'],
+            ],
+            'null' => [
+                'value' => null,
+                'expected' => null,
+            ],
+        ];
+    }
+
+    /**
+     * @useDatabase false
+     */
+    #[DataProvider('provideGetValueForValidation')]
+    public function testGetValueForValidation(mixed $value, mixed $expected): void
+    {
+        $field = new ListboxField('Test');
+        $field->setValue($value);
+        $actual = $field->getValueForValidation($value);
+        $this->assertSame($expected, $actual);
     }
 }

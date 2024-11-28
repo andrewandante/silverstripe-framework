@@ -165,6 +165,17 @@ class ListboxField extends MultiSelectField
         return $this->disabledItems;
     }
 
+    public function getValueForValidation(): mixed
+    {
+        // Unlike other MultiSelectField's, ListboxField allows setting a single value without wrapping it in an array.
+        // Ensure values are wrapped in an array here so that the validation logic can treat it as a multi-select
+        $value = parent::getValueForValidation();
+        if (!is_array($value) && !is_null($value)) {
+            $value = [$value];
+        }
+        return $value;
+    }
+
      /**
      * Provide ListboxField data to the JSON schema for the frontend component
      *
@@ -256,7 +267,7 @@ class ListboxField extends MultiSelectField
                 $replaced = [];
                 foreach ($value as $item) {
                     if (!is_array($item)) {
-                        $item = json_decode($item, true);
+                        $item = json_decode($item ?? '', true);
                     }
 
                     if ($targetType === gettype($item)) {

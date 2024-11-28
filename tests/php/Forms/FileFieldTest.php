@@ -66,8 +66,7 @@ class FileFieldTest extends FunctionalTest
             // with the [] brackets trimmed e.g. $_FILES[multi_file_syntax]
             $_FILES = [preg_replace('#\[(.*?)\]#', '', $name) => $fileData];
             $fileField->setValue($fileData);
-            $validator = $form->getValidator();
-            $isValid = $fileField->validate($validator);
+            $isValid = $fileField->validate()->isValid();
             $this->assertFalse($isValid, "$name was run through the validate() function");
         }
     }

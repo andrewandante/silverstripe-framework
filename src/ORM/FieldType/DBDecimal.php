@@ -14,7 +14,10 @@ use SilverStripe\Model\ModelData;
 class DBDecimal extends DBField
 {
     private static array $field_validators = [
-        DecimalFieldValidator::class => ['getWholeSize', 'getDecimalSize'],
+        DecimalFieldValidator::class => [
+            'wholeSize' => 'getWholeSize',
+            'decimalSize' => 'getDecimalSize',
+        ],
     ];
 
     /**

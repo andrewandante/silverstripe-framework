@@ -3,7 +3,6 @@
 namespace SilverStripe\Core\Validation\FieldValidation;
 
 use SilverStripe\Core\Validation\ValidationResult;
-use SilverStripe\Core\Validation\FieldValidation\FieldValidator;
 
 /**
  * Validates that a value is one of a set of options
@@ -31,8 +30,12 @@ class OptionFieldValidator extends FieldValidator
     protected function checkValueInOptions(mixed $value, ValidationResult $result): void
     {
         if (!in_array($value, $this->options, true)) {
-            $message = _t(__CLASS__ . '.NOTALLOWED', 'Not an allowed value');
-            $result->addFieldError($this->name, $message);
+            $result->addFieldError($this->name, $this->getMessage());
         }
+    }
+
+    protected function getMessage(): string
+    {
+        return _t(__CLASS__ . '.NOTALLOWED', 'Not an allowed value');
     }
 }

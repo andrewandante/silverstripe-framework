@@ -21,7 +21,9 @@ use SilverStripe\Model\ModelData;
 class DBEnum extends DBString implements Resettable
 {
     private static array $field_validators = [
-        OptionFieldValidator::class => ['getEnum'],
+        OptionFieldValidator::class => [
+            'options' => 'getEnum'
+        ],
     ];
 
     /**

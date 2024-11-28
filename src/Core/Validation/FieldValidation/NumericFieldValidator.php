@@ -2,9 +2,8 @@
 
 namespace SilverStripe\Core\Validation\FieldValidation;
 
-use SilverStripe\Core\Validation\ValidationResult;
-use SilverStripe\Core\Validation\FieldValidation\FieldValidator;
 use InvalidArgumentException;
+use SilverStripe\Core\Validation\ValidationResult;
 
 /**
  * Validates that a value is a numeric value
@@ -26,7 +25,7 @@ class NumericFieldValidator extends FieldValidator
         string $name,
         mixed $value,
         ?int $minValue = null,
-        ?int $maxValue = null
+        ?int $maxValue = null,
     ) {
         if (!is_null($minValue) && !is_null($maxValue) && $maxValue < $minValue) {
             throw new InvalidArgumentException('maxValue cannot be less than minValue');
@@ -39,9 +38,8 @@ class NumericFieldValidator extends FieldValidator
     protected function validateValue(): ValidationResult
     {
         $result = ValidationResult::create();
-        if (!is_numeric($this->value) || is_string($this->value)) {
-            // Must be a numeric value, though not as a numeric string
-            $message = _t(__CLASS__ . '.WRONGTYPE', 'Must be numeric, and not a string');
+        if (!is_numeric($this->value)) {
+            $message = _t(__CLASS__ . '.NOTNUMERIC', 'Must be numeric');
             $result->addFieldError($this->name, $message);
         } elseif (!is_null($this->minValue) && $this->value < $this->minValue) {
             $result->addFieldError($this->name, $this->getTooSmallMessage());

@@ -253,6 +253,7 @@ class SearchableDropdownTraitTest extends SapphireTest
         // We have to disable the constructor because it ends up calling a static method, and we can't call static methods on mocks.
         $mockField = $this->getMockBuilder($fieldClass)->onlyMethods(['getSource'])->disableOriginalConstructor()->getMock();
         $mockField->expects($this->never())->method('getSource');
+        $mockField->setName('Test');
         $mockField->setIsLazyLoaded(true);
         $mockField->setSource(Team::get());
         $mockField->setForm(new Form());

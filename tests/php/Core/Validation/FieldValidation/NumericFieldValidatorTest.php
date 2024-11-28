@@ -14,69 +14,99 @@ class NumericFieldValidatorTest extends SapphireTest
         return [
             'valid-int' => [
                 'value' => 123,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-zero' => [
                 'value' => 0,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-negative-int' => [
                 'value' => -123,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-float' => [
                 'value' => 123.45,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-negative-float' => [
                 'value' => -123.45,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-max-int' => [
                 'value' => PHP_INT_MAX,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-min-int' => [
                 'value' => PHP_INT_MIN,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-max-float' => [
                 'value' => PHP_FLOAT_MAX,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-min-float' => [
                 'value' => PHP_FLOAT_MIN,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-null' => [
                 'value' => null,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
-            'invalid-string' => [
+            'valid-string' => [
                 'value' => '123',
-                'expected' => false,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
+            ],
+            'valid-numeric-string' => [
+                'value' => '123',
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
+            ],
+            'invalid-not-numeric-string' => [
+                'value' => 'fish',
+                'expectedIsValid' => false,
+                'expectedMessage' => 'Must be numeric',
             ],
             'invalid-array' => [
                 'value' => [123],
-                'expected' => false,
+                'expectedIsValid' => false,
+                'expectedMessage' => 'Must be numeric',
             ],
             'invalid-true' => [
                 'value' => true,
-                'expected' => false,
+                'expectedIsValid' => false,
+                'expectedMessage' => 'Must be numeric',
             ],
             'invalid-false' => [
                 'value' => false,
-                'expected' => false,
+                'expectedIsValid' => false,
+                'expectedMessage' => 'Must be numeric',
             ],
         ];
     }
 
     #[DataProvider('provideValidateType')]
-    public function testValidateType(mixed $value, bool $expected): void
-    {
+    public function testValidateType(
+        mixed $value,
+        bool $expectedIsValid,
+        ?string $expectedMessage
+    ): void {
         $validator = new NumericFieldValidator('MyField', $value);
         $result = $validator->validate();
-        $this->assertSame($expected, $result->isValid());
+        $this->assertSame($expectedIsValid, $result->isValid());
+        if (!$result->isValid()) {
+            $this->assertSame($expectedMessage, $result->getMessages()[0]['message']);
+        }
     }
 
     public static function provideValidate(): array
@@ -87,84 +117,104 @@ class NumericFieldValidatorTest extends SapphireTest
                 'minValue' => null,
                 'maxValue' => null,
                 'exception' => false,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-min' => [
                 'value' => 15,
                 'minValue' => 10,
                 'maxValue' => null,
                 'exception' => false,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-min-equal' => [
                 'value' => 10,
                 'minValue' => 10,
                 'maxValue' => null,
                 'exception' => false,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-max' => [
                 'value' => 5,
                 'minValue' => null,
                 'maxValue' => 10,
                 'exception' => false,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-max-equal' => [
                 'value' => 10,
                 'minValue' => null,
                 'maxValue' => 10,
                 'exception' => false,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-min-max-between' => [
                 'value' => 15,
                 'minValue' => 10,
                 'maxValue' => 20,
                 'exception' => false,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'valid-min-max-equal' => [
                 'value' => 10,
                 'minValue' => 10,
                 'maxValue' => 10,
                 'exception' => false,
-                'expected' => true,
+                'expectedIsValid' => true,
+                'expectedMessage' => null,
             ],
             'exception-min-above-max' => [
                 'value' => 15,
                 'minValue' => 20,
                 'maxValue' => 10,
                 'exception' => true,
-                'expected' => false,
+                'expectedIsValid' => false,
+                'expectedMessage' => '',
             ],
             'invalid-below-min' => [
                 'value' => 5,
                 'minValue' => 10,
                 'maxValue' => 20,
                 'exception' => false,
-                'expected' => false,
+                'expectedIsValid' => false,
+                'expectedMessage' => 'Value cannot be less than 10',
             ],
             'invalid-above-max' => [
                 'value' => 25,
                 'minValue' => 10,
                 'maxValue' => 20,
                 'exception' => false,
-                'expected' => false,
+                'expectedIsValid' => false,
+                'expectedMessage' => 'Value cannot be greater than 20',
             ],
         ];
     }
 
     #[DataProvider('provideValidate')]
-    public function testValidate(int $value, ?int $minValue, ?int $maxValue, bool $exception, bool $expected): void
-    {
+    public function testValidate(
+        int $value,
+        ?int $minValue,
+        ?int $maxValue,
+        bool $exception,
+        bool $expectedIsValid,
+        ?string $expectedMessage,
+    ): void {
         if ($exception) {
             $this->expectException(InvalidArgumentException::class);
         }
         $validator = new NumericFieldValidator('MyField', $value, $minValue, $maxValue);
         $result = $validator->validate();
-        if (!$exception) {
-            $this->assertSame($expected, $result->isValid());
+        if ($exception) {
+            return;
+        }
+        $this->assertSame($expectedIsValid, $result->isValid());
+        if (!$result->isValid()) {
+            $this->assertSame($expectedMessage, $result->getMessages()[0]['message']);
         }
     }
 }

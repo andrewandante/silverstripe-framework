@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forms\Tests;
 
-use Exception;
 use LogicException;
 use ReflectionClass;
 use SilverStripe\Core\ClassInfo;
@@ -39,11 +38,67 @@ use SilverStripe\Security\PermissionCheckboxSetField_Readonly;
 use SilverStripe\Forms\SearchableMultiDropdownField;
 use SilverStripe\Forms\SearchableDropdownField;
 use PHPUnit\Framework\Attributes\DataProvider;
-use SilverStripe\ORM\FieldType\DBInt;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forms\ConfirmedPasswordField;
+use SilverStripe\Forms\FieldsValidator;
+use SilverStripe\Forms\NumericField;
+use SilverStripe\Forms\CheckboxField_Readonly;
+use SilverStripe\VersionedAdmin\Forms\DiffField;
+use SilverStripe\Subsites\Forms\WildcardDomainField;
+use InvalidArgumentException;
+use Exception;
+use ReflectionMethod;
+use SilverStripe\Core\Validation\FieldValidation\CompositeFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\DateFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\EmailFieldValidator;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Core\Validation\FieldValidation\StringFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\UrlFieldValidator;
+use SilverStripe\Forms\CheckboxSetField;
+use SilverStripe\Forms\CurrencyField;
+use SilverStripe\Forms\CurrencyField_Disabled;
+use SilverStripe\Forms\CurrencyField_Readonly;
+use SilverStripe\Forms\DatalessField;
+use SilverStripe\Forms\DateField;
+use SilverStripe\Forms\DateField_Disabled;
+use SilverStripe\Forms\DatetimeField;
+use SilverStripe\Forms\EmailField;
+use SilverStripe\Forms\GroupedDropdownField;
+use SilverStripe\Forms\HeaderField;
+use SilverStripe\Forms\HiddenField;
+use SilverStripe\Forms\HTMLReadonlyField;
+use SilverStripe\Forms\LabelField;
+use SilverStripe\Forms\ListboxField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\LookupField;
+use SilverStripe\Forms\MoneyField;
+use SilverStripe\Forms\OptionsetField;
+use SilverStripe\Forms\PasswordField;
+use SilverStripe\Forms\ReadonlyField;
+use SilverStripe\Forms\SearchableLookupField;
+use SilverStripe\Forms\SingleLookupField;
+use SilverStripe\Forms\TextareaField;
+use SilverStripe\Forms\TabSet;
+use SilverStripe\Forms\TimeField;
+use SilverStripe\Forms\TimeField_Readonly;
+use SilverStripe\Forms\TreeMultiselectField;
+use SilverStripe\Forms\TreeMultiselectField_Readonly;
+use SilverStripe\Forms\UrlField;
+use SilverStripe\Forms\FileField;
+use SilverStripe\Forms\FormAction;
+use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
+use SilverStripe\Forms\HTMLEditor\HTMLEditorField_Readonly;
+use SilverStripe\Core\Validation\FieldValidation\MultiOptionFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\NumericFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\OptionFieldValidator;
+use SilverStripe\ORM\DataList;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\SegmentField;
+use SilverStripe\Core\Validation\FieldValidation\TimeFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\DatetimeFieldValidator;
 
 class FormFieldTest extends SapphireTest
 {
-
     protected static $required_extensions = [
         FormField::class => [
             TestExtension::class,
@@ -492,28 +547,29 @@ class FormFieldTest extends SapphireTest
         /** @var TextField|FieldValidationExtension $field */
         $field = new TextField('Test');
         $field->setMaxLength(5);
+        $form = new Form(null, 'test', new FieldList($field), new FieldList(), new FieldsValidator());
+        $form->disableSecurityToken();
+
         $field->setValue('IAmLongerThan5Characters');
-        $result = $field->validate(new RequiredFields('Test'));
-        $this->assertFalse($result);
+        $result = $field->validate();
+        $this->assertFalse($result->isValid());
 
         // Call extension method in FieldValidationExtension
         $field->setExcludeFromValidation(true);
-        $result = $field->validate(new RequiredFields('Test'));
-        $this->assertTrue($result);
+        $result = $field->validate();
+        $this->assertTrue($result->isValid());
 
         // Call extension methods in FieldValidationExtension
         $field->setValue('1234');
         $field->setExcludeFromValidation(false);
         $field->setTriggerTestValidationError(true);
+        $result = $field->validate();
+        $this->assertFalse($result->isValid());
 
-        // Ensure messages set via updateValidationResult() propagate through to form fields after validation
-        $form = new Form(null, 'TestForm', new FieldList($field), new FieldList(), new RequiredFields());
-        $form->validationResult();
-        $schema = $field->getSchemaState();
-        $this->assertEquals(
-            'A test error message',
-            $schema['message']['value']
-        );
+        // Ensure messages set via updateValidate() propagate through after form validation
+        $result = $form->validationResult();
+        $state = $field->getSchemaState();
+        $this->assertEquals('A test error message', $state['message']['value']);
     }
 
     public function testValidationExtensionHooksAreCalledOnFormFieldSubclasses()
@@ -608,27 +664,87 @@ class FormFieldTest extends SapphireTest
                 default:
                     $args = ['Test', 'Test label'];
             }
-
-            // Assert that extendValidationResult is called once each time ->validate() is called
-            $mock = $this->getMockBuilder($formFieldClass)
-                ->setConstructorArgs($args)
-                ->onlyMethods(['extendValidationResult'])
-                ->getMock();
-            $mock->expects($invocationRule = $this->once())
-                ->method('extendValidationResult')
-                ->willReturn(true);
-
-            $isValid = $mock->validate(new RequiredFields());
-            $this->assertTrue($isValid, "$formFieldClass should be valid");
-
-            // This block is not essential and only exists to make test debugging easier - without this,
-            // the error message on failure is generic and doesn't include the class name that failed
-            try {
-                $invocationRule->verify();
-            } catch (Exception $e) {
-                $this->fail("Expectation failed for '$formFieldClass' class: {$e->getMessage()}");
+            $field = Injector::inst()->createWithArgs($formFieldClass, $args);
+            if ($formFieldClass === ConfirmedPasswordField::class) {
+                /** @var ConfirmedPasswordField $field */
+                $field->setCanBeEmpty(true);
+            } elseif ($formFieldClass === DiffField::class) {
+                /** @var DiffField $field */
+                $field->setComparisonField(new TextField('Test2'));
+            } elseif ($formFieldClass === WildcardDomainField::class) {
+                $field->setValue('*');
             }
+            $this->assertTrue($field->validate()->isValid(), "$formFieldClass should be valid");
         }
+    }
+
+    public static function provideSetSubmittedValue(): array
+    {
+        return [
+            'int-1' => [
+                'value' => 1,
+                'expected' => 1,
+            ],
+            'int-0' => [
+                'value' => 0,
+                'expected' => 0,
+            ],
+            'string-int-1' => [
+                'value' => '1',
+                'expected' => '1',
+            ],
+            'string-int-0' => [
+                'value' => '0',
+                'expected' => '0',
+            ],
+            'blank-string' => [
+                'value' => '',
+                'expected' => null,
+            ],
+            'string' => [
+                'value' => 'fish',
+                'expected' => 'fish',
+            ],
+            'array-string' => [
+                'value' => ['fish'],
+                'expected' => ['fish'],
+            ],
+            'array-int' => [
+                'value' => [1],
+                'expected' => [1],
+            ],
+            'array-empty' => [
+                'value' => [],
+                'expected' => [],
+            ],
+            'bool-true' => [
+                'value' => true,
+                'expected' => true,
+            ],
+            'bool-false' => [
+                'value' => false,
+                'expected' => false,
+            ],
+        ];
+    }
+
+    #[DataProvider('provideSetSubmittedValue')]
+    public function testSetSubmittedValue(mixed $value, mixed $expected): void
+    {
+        $field = new FormField('MyField');
+        $field->setSubmittedValue('My value');
+        $this->assertEquals('My value', $field->getValue());
+    }
+
+    #[DataProvider('provideSetSubmittedValue')]
+    public function testSetValue(mixed $value, mixed $expected): void
+    {
+        // Uses the same DataProvider as testSetSubmittedValue()
+        // Explicity expect that setValue() does not alter the value
+        $expected = $value;
+        $field = new FormField('MyField');
+        $field->setValue('My value');
+        $this->assertEquals('My value', $field->getValue());
     }
 
     public function testHasClass()
@@ -699,5 +815,226 @@ class FormFieldTest extends SapphireTest
         $field = new FormField('MyField');
         $this->assertTrue(is_a($field->castedCopy(TextField::class), TextField::class));
         $this->assertTrue(is_a($field->castedCopy(CompositeField::class), CompositeField::class));
+    }
+
+    public function testUpdateValidateHookCalled(): void
+    {
+        foreach ($this->getFormFieldClasses() as $class) {
+            $field = $this->instantiateFormField($class);
+            $field->setTriggerTestValidationError(true);
+            $messages = $field->validate()->getMessages();
+            $found = false;
+            foreach ($messages as $message) {
+                if ($message['message'] === 'A test error message') {
+                    $found = true;
+                    break;
+                }
+            }
+            $this->assertTrue($found, $class);
+        }
+    }
+
+    public function testFieldValidatorConfig(): void
+    {
+        $expectedFieldValidators = [
+            CheckboxField::class => [],
+            CheckboxField_Readonly::class => [],
+            CheckboxSetField::class => [
+                MultiOptionFieldValidator::class,
+            ],
+            CompositeField::class => [
+                CompositeFieldValidator::class,
+            ],
+            ConfirmedPasswordField::class => [],
+            CurrencyField::class => [
+                StringFieldValidator::class,
+            ],
+            CurrencyField_Disabled::class => [
+                StringFieldValidator::class,
+            ],
+            CurrencyField_Readonly::class => [],
+            DatalessField::class => [],
+            DateField::class => [
+                StringFieldValidator::class,
+                DateFieldValidator::class,
+            ],
+            DateField_Disabled::class => [
+                StringFieldValidator::class,
+                DateFieldValidator::class,
+            ],
+            DatetimeField::class => [
+                StringFieldValidator::class,
+                DatetimeFieldValidator::class,
+            ],
+            DropdownField::class => [
+                OptionFieldValidator::class,
+            ],
+            EmailField::class => [
+                StringFieldValidator::class,
+                EmailFieldValidator::class,
+            ],
+            FileField::class => [],
+            FormAction::class => [],
+            FormField::class => [],
+            FieldGroup::class => [
+                CompositeFieldValidator::class,
+            ],
+            GridField::class => [],
+            GridField_FormAction::class => [],
+            GridState::class => [],
+            GroupedDropdownField::class => [
+                OptionFieldValidator::class,
+            ],
+            HeaderField::class => [],
+            HiddenField::class => [],
+            HTMLEditorField::class => [
+                StringFieldValidator::class,
+            ],
+            HTMLEditorField_Readonly::class => [],
+            HTMLReadonlyField::class => [],
+            LabelField::class => [],
+            ListboxField::class => [
+                MultiOptionFieldValidator::class,
+            ],
+            LiteralField::class => [],
+            LookupField::class => [],
+            MoneyField::class => [
+                CompositeFieldValidator::class,
+            ],
+            NullableField::class => [],
+            NumericField::class => [
+                StringFieldValidator::class,
+                NumericFieldValidator::class,
+            ],
+            OptionsetField::class => [
+                OptionFieldValidator::class,
+            ],
+            PasswordField::class => [
+                StringFieldValidator::class,
+            ],
+            PopoverField::class => [
+                CompositeFieldValidator::class,
+            ],
+            PrintableTransformation_TabSet::class => [
+                CompositeFieldValidator::class,
+            ],
+            ReadonlyField::class => [],
+            SearchableDropdownField::class => [
+                OptionFieldValidator::class,
+            ],
+            SearchableLookupField::class => [],
+            SearchableMultiDropdownField::class => [
+                MultiOptionFieldValidator::class,
+            ],
+            SelectionGroup::class => [
+                CompositeFieldValidator::class,
+            ],
+            SelectionGroup_Item::class => [
+                CompositeFieldValidator::class,
+            ],
+            SegmentField::class => [
+                StringFieldValidator::class,
+            ],
+            SingleLookupField::class => [],
+            Tab::class => [
+                CompositeFieldValidator::class,
+            ],
+            TabSet::class => [
+                CompositeFieldValidator::class,
+            ],
+            TextareaField::class => [
+                StringFieldValidator::class,
+            ],
+            TextField::class => [
+                StringFieldValidator::class,
+            ],
+            TimeField::class => [
+                StringFieldValidator::class,
+                TimeFieldValidator::class,
+            ],
+            TimeField_Readonly::class => [
+                StringFieldValidator::class,
+                TimeFieldValidator::class,
+            ],
+            ToggleCompositeField::class => [
+                CompositeFieldValidator::class,
+            ],
+            TreeDropdownField::class => [],
+            TreeDropdownField_Readonly::class => [],
+            TreeMultiselectField::class => [],
+            TreeMultiselectField_Readonly::class => [],
+            UrlField::class => [
+                StringFieldValidator::class,
+            ],
+        ];
+        $count = 0;
+        foreach ($this->getFormFieldClasses() as $class) {
+            if (!array_key_exists($class, $expectedFieldValidators)) {
+                throw new Exception("No field validator config found for $class");
+            }
+            $expected = $expectedFieldValidators[$class];
+            $field = $this->instantiateFormField($class);
+            $method = new ReflectionMethod($class, 'getFieldValidators');
+            $method->setAccessible(true);
+            $config = $method->invoke($field);
+            $actual = array_map('get_class', $config);
+            $this->assertSame($expected, $actual, $class);
+            $count++;
+        }
+        // Assert that we have tested all classes e.g. namespace wasn't changed, no new classes were added
+        // that haven't been tested
+        $this->assertSame(58, $count);
+    }
+
+    private function instantiateFormField(string $class): FormField
+    {
+        $args = ['MyField'];
+        if (is_a($class, NullableField::class, true)) {
+            $args = [new TextField('MyField')];
+        } elseif (is_a($class, SearchableDropdownField::class, true)) {
+            $args = ['MyField', 'MyField', new DataList(Group::class)];
+        } elseif (is_a($class, SearchableMultiDropdownField::class, true)) {
+            $args = ['MyField', 'MyField', new DataList(Group::class)];
+        } elseif (is_a($class, TreeDropdownField::class, true)) {
+            $args = ['MyField', 'MyField', Group::class];
+        } elseif (is_a($class, SelectionGroup::class, true)) {
+            $args = ['MyField', []];
+        } elseif (is_a($class, PrintableTransformation_TabSet::class, true)) {
+            $args = [[]];
+        } elseif (is_a($class, Tab::class, true)) {
+            $args = ['MyField'];
+        } elseif (is_a($class, TabSet::class, true)) {
+            $args = ['MyField'];
+        } elseif (is_a($class, ToggleCompositeField::class, true)) {
+            $args = ['MyField', 'MyField', []];
+        } elseif (is_a($class, CompositeField::class, true)) {
+            $args = [null];
+        } elseif (is_a($class, LiteralField::class, true)) {
+            $args = ['MyField', ''];
+        } elseif (is_a($class, GridField_FormAction::class, true)) {
+            $args = [new GridField('MyGridField'), 'MyField', 'MyTitle', 'MyAction', []];
+        } elseif (is_a($class, GridState::class, true)) {
+            $args = [new GridField('MyGridField')];
+        }
+        return new $class(...$args);
+    }
+
+    private function getFormFieldClasses(): array
+    {
+        $classes = [];
+        foreach (ClassInfo::subclassesFor(FormField::class) as $class) {
+            if (is_a($class, TestOnly::class, true)) {
+                continue;
+            }
+            if (!str_starts_with($class, 'SilverStripe\Forms')) {
+                continue;
+            }
+            $reflector = new ReflectionClass($class);
+            if ($reflector->isAbstract()) {
+                continue;
+            }
+            $classes[] = $class;
+        }
+        return $classes;
     }
 }

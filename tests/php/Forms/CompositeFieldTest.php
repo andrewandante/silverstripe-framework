@@ -100,14 +100,14 @@ class CompositeFieldTest extends SapphireTest
             $fieldOne = DropdownField::create('A', '', [ 'value' => 'value' ]),
             $fieldTwo = TextField::create('B')
         );
-        $validator = new RequiredFields();
+        $fieldOne->setValue('not a value');
         $this->assertFalse(
-            $field->validate($validator),
+            $field->validate()->isValid(),
             "Validation fails when child is invalid"
         );
-        $fieldOne->setEmptyString('empty');
+        $fieldOne->setValue('value');
         $this->assertTrue(
-            $field->validate($validator),
+            $field->validate()->isValid(),
             "Validates when children are valid"
         );
     }
@@ -269,5 +269,13 @@ class CompositeFieldTest extends SapphireTest
         $this->assertStringContainsString(CompositeField::class . ' (TestComposite)', $result);
         $this->assertStringContainsString('TestTextField', $result);
         $this->assertStringContainsString('<ul', $result, 'Result should be formatted as a <ul>');
+    }
+
+    public function testGetValueForValidation()
+    {
+        $fieldOne = TextField::create('One');
+        $fieldTwo = TextField::create('Two');
+        $field = new CompositeField($fieldOne, $fieldTwo);
+        $this->assertSame([$fieldOne, $fieldTwo], $field->getValueForValidation());
     }
 }

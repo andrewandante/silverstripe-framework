@@ -3,7 +3,11 @@
 namespace SilverStripe\Forms;
 
 use NumberFormatter;
+use SilverStripe\Core\Validation\FieldValidation\NumericFieldValidator;
 use SilverStripe\i18n\i18n;
+use SilverStripe\Core\Validation\FieldValidation\StringFieldValidator;
+use Error;
+use SilverStripe\Core\Validation\ValidationResult;
 
 /**
  * Text input field with validation for numeric values. Supports validating
@@ -12,6 +16,12 @@ use SilverStripe\i18n\i18n;
  */
 class NumericField extends TextField
 {
+    private static array $field_validators = [
+        NumericFieldValidator::class => [
+            'minValue' => null,
+            'maxValue' => null,
+        ],
+    ];
 
     protected $schemaDataType = FormField::SCHEMA_DATA_TYPE_DECIMAL;
 
@@ -47,6 +57,14 @@ class NumericField extends TextField
      * @var string
      */
     protected $scale = 0;
+
+    public function __construct($name, $title = null, $value = null, $maxLength = null, $form = null)
+    {
+        // This constructor has a default value of null for the $value param, as opposed to the parent
+        // TextField constructor which has a default value of blank string. This is done to prevent passing
+        // a blank string to the NumericFieldValidator which which will cause a validation error.
+        parent::__construct($name, $title, $value, $maxLength, $form);
+    }
 
     /**
      * Get number formatter for localising this field
@@ -104,15 +122,26 @@ class NumericField extends TextField
     /**
      * In some cases and locales, validation expects non-breaking spaces.
      * This homogenises regular, narrow and thin non-breaking spaces to a regular space character.
-     *
      */
     private function clean(?string $value): string
     {
         return trim(str_replace(["\u{00A0}", "\u{202F}", "\u{2009}"], ' ', $value ?? ''));
     }
 
+    public function setValue($value, $data = null)
+    {
+        $this->originalValue = $value;
+        $this->value = $this->cast($value);
+        return $this;
+    }
+
     public function setSubmittedValue($value, $data = null)
     {
+        if (is_null($value)) {
+            $this->value = null;
+            return $this;
+        }
+
         // Save original value in case parse fails
         $value = $this->clean($value);
         $this->originalValue = $value;
@@ -126,11 +155,12 @@ class NumericField extends TextField
         // Format number
         $formatter = $this->getFormatter();
         $parsed = 0;
-        $this->value = $formatter->parse($value, $this->getNumberType(), $parsed); // Note: may store literal `false` for invalid values
+        $value = $formatter->parse($value, $this->getNumberType(), $parsed); // Note: may store literal `false` for invalid values
         // Ensure that entire string is parsed
-        if ($parsed < strlen($value ?? '')) {
-            $this->value = false;
+        if ($parsed < strlen($this->originalValue ?? '')) {
+            $value = false;
         }
+        $this->value = $this->cast($value);
         return $this;
     }
 
@@ -149,28 +179,63 @@ class NumericField extends TextField
         return $formatter->format($this->value, $this->getNumberType());
     }
 
-    public function setValue($value, $data = null)
+    public function getValueForValidation(): mixed
     {
-        $this->originalValue = $value;
-        $this->value = $this->cast($value);
-        return $this;
+        $value = $this->getValue();
+        // If the submitted value failed to parse in the localisation formatter
+        // return null so that FieldValidation is skipped
+        // NumericField::validate() will "manually" add a validation message
+        if ($value === false) {
+            return null;
+        }
+        return $value;
+    }
+
+    public function validate(): ValidationResult
+    {
+        $this->beforeExtending('updateValidate', function (ValidationResult $result) {
+            // Value will be false if the submitted value failed to parse in the localisation formatter
+            if ($this->getValue() === false) {
+                $result->addFieldError(
+                    $this->getName(),
+                    _t(
+                        __CLASS__ . '.INVALID',
+                        'Invalid number'
+                    )
+                );
+            }
+        });
+        return parent::validate();
     }
 
     /**
-     * Helper to cast non-localised strings to their native type
-     *
-     * @param string $value
-     * @return float|int
+     * Helper to cast values to numeric strings using the current scale
      */
-    protected function cast($value)
+    protected function cast(mixed $value): mixed
     {
-        if (strlen($value ?? '') === 0) {
+        // If the value is false, it means the value failed to parse in the localisation formatter
+        if ($value === false) {
+            return false;
+        }
+        // If null or empty string, return null
+        if (is_null($value) || is_string($value) && strlen($value) === 0) {
             return null;
         }
-        if ($this->getScale() === 0) {
-            return (int)$value;
+        // If non-numeric, then return as-is. This will be caught by the validation.
+        if (!is_numeric($value)) {
+            return $value;
         }
-        return (float)$value;
+        if ($this->getScale() === 0) {
+            // If scale is set to 0, then remove decimal places
+            // e.g. 1.00 will be cast to 1, 1.20 will be cast to 1
+            $value = (int) $value;
+        } else {
+            // Otherwise, cast to float. This will remove any trailing deciaml zeros.
+            // e.g. 1.00 will be cast to 1, 1.20 will be cast to 1.2
+            $value = (float) $value;
+        }
+        // Return as string because numeric strings are used internally in this class
+        return (string) $value;
     }
 
     /**
@@ -193,31 +258,6 @@ class NumericField extends TextField
         return $attributes;
     }
 
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        $result = true;
-        // false signifies invalid value due to failed parse()
-        if ($this->value === false) {
-            $validator->validationError(
-                $this->name,
-                _t(
-                    'SilverStripe\\Forms\\NumericField.VALIDATION',
-                    "'{value}' is not a number, only numbers can be accepted for this field",
-                    ['value' => $this->originalValue]
-                )
-            );
-            $result = false;
-        }
-
-        return $this->extendValidationResult($result, $validator);
-    }
-
     public function getSchemaValidation()
     {
         $rules = parent::getSchemaValidation();
@@ -228,11 +268,19 @@ class NumericField extends TextField
     /**
      * Get internal database value
      *
-     * @return int|float
+     * @return string|false
      */
     public function dataValue()
     {
-        return $this->cast($this->value);
+        // Cast to string before passing on to model we don't know the DBField used by the model,
+        // as it may be a DBString field which can't handle numeric values
+        // DBInt and DBFloat can both handle numeric strings
+        // This would return false if the value failed to parse in the localisation formatter
+        // though the assumption is that the validate() method will have already been called
+        // and the validation error message will be displayed to the user and there would
+        // be no attempt to save to the database.
+        $value = $this->getValue();
+        return $this->cast($value);
     }
 
     /**

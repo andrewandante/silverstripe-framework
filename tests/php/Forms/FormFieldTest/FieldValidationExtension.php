@@ -4,7 +4,7 @@ namespace SilverStripe\Forms\Tests\FormFieldTest;
 
 use SilverStripe\Core\Extension;
 use SilverStripe\Dev\TestOnly;
-use SilverStripe\Forms\Validator;
+use SilverStripe\Core\Validation\ValidationResult;
 
 class FieldValidationExtension extends Extension implements TestOnly
 {
@@ -12,17 +12,12 @@ class FieldValidationExtension extends Extension implements TestOnly
 
     protected bool $triggerTestValidationError = false;
 
-    protected function updateValidationResult(bool &$result, Validator $validator)
+    protected function updateValidate(ValidationResult &$result)
     {
         if ($this->excludeFromValidation) {
-            $result = true;
-            return;
-        }
-
-        if ($this->triggerTestValidationError) {
-            $result = false;
-            $validator->validationError($this->owner->getName(), 'A test error message');
-            return;
+            $result = new ValidationResult();
+        } elseif ($this->triggerTestValidationError) {
+            $result->addFieldError($this->owner->getName(), 'A test error message');
         }
     }
 

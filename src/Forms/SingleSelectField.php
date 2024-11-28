@@ -9,7 +9,6 @@ use ArrayAccess;
  */
 abstract class SingleSelectField extends SelectField
 {
-
     /**
      * Show the first <option> element as empty (not having a value),
      * with an optional label defined through {@link $emptyString}.
@@ -33,9 +32,7 @@ abstract class SingleSelectField extends SelectField
     public function getSchemaStateDefaults()
     {
         $data = parent::getSchemaStateDefaults();
-
         $data['value'] = $this->getDefaultValue();
-
         return $data;
     }
 
@@ -48,6 +45,15 @@ abstract class SingleSelectField extends SelectField
         $data['data']['emptyString'] = $this->getHasEmptyDefault() ? $this->getEmptyString() : null;
 
         return $data;
+    }
+
+    public function getValueForValidation(): mixed
+    {
+        $value = $this->getValue();
+        if ($value === '' && $this->getHasEmptyDefault()) {
+            return null;
+        }
+        return $this->castSubmittedValue($value);
     }
 
     public function getDefaultValue()
@@ -119,46 +125,6 @@ abstract class SingleSelectField extends SelectField
         } else {
             return $this->getSource();
         }
-    }
-
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        // Check if valid value is given
-        $selected = $this->Value();
-        $validValues = $this->getValidValues();
-
-        if (strlen($selected ?? '')) {
-            // Use selection rules to check which are valid
-            foreach ($validValues as $formValue) {
-                if ($this->isSelectedValue($formValue, $selected)) {
-                    return $this->extendValidationResult(true, $validator);
-                }
-            }
-        } else {
-            if ($this->getHasEmptyDefault() || !$validValues || in_array('', $validValues ?? [])) {
-                // Check empty value
-                return $this->extendValidationResult(true, $validator);
-            }
-            $selected = '(none)';
-        }
-
-        // Fail
-        $validator->validationError(
-            $this->name,
-            _t(
-                'SilverStripe\\Forms\\DropdownField.SOURCE_VALIDATION',
-                "Please select a value within the list provided. {value} is not a valid option",
-                ['value' => $selected]
-            ),
-            "validation"
-        );
-        return $this->extendValidationResult(false, $validator);
     }
 
     public function castedCopy($classOrCopy)

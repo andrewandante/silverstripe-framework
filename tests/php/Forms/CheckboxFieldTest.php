@@ -163,28 +163,27 @@ class CheckboxFieldTest extends SapphireTest
     public function testValidation()
     {
         $field = CheckboxField::create('Test', 'Testing');
-        $validator = new RequiredFields();
         $field->setValue(1);
         $this->assertTrue(
-            $field->validate($validator),
+            $field->validate()->isValid(),
             'Field correctly validates integers as allowed'
         );
         //string value should validate
         $field->setValue("test");
         $this->assertTrue(
-            $field->validate($validator),
+            $field->validate()->isValid(),
             'Field correctly validates words as allowed'
         );
         //empty string should validate
         $field->setValue('');
         $this->assertTrue(
-            $field->validate($validator),
+            $field->validate()->isValid(),
             'Field correctly validates empty strings as allowed'
         );
         //null should validate
         $field->setValue(null);
         $this->assertTrue(
-            $field->validate($validator),
+            $field->validate()->isValid(),
             'Field correct validates null as allowed'
         );
     }

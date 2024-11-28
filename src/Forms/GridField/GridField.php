@@ -131,9 +131,6 @@ class GridField extends FormField
      */
     protected $customDataFields = [];
 
-    /**
-     * @var string
-     */
     protected $name = '';
 
     /**

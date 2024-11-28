@@ -2,7 +2,7 @@
 
 namespace SilverStripe\ORM\FieldType;
 
-use SilverStripe\Core\Validation\FieldValidation\NumericFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\NumericNonStringFieldValidator;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\NumericField;
 use SilverStripe\ORM\DB;
@@ -14,7 +14,7 @@ use SilverStripe\Model\ModelData;
 class DBFloat extends DBField
 {
     private static array $field_validators = [
-        NumericFieldValidator::class,
+        NumericNonStringFieldValidator::class,
     ];
 
     public function __construct(?string $name = null, float|int $defaultVal = 0)
