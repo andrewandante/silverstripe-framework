@@ -1245,6 +1245,11 @@ class FormField extends RequestHandler
      */
     public function validate($validator)
     {
+        Deprecation::noticeWithNoReplacment(
+            '5.4.0',
+            'This method will take zero arguments and return a ValidationResult'
+            . ' object instead of a boolean in CMS 6.0.0'
+        );
         return $this->extendValidationResult(true, $validator);
     }
 
