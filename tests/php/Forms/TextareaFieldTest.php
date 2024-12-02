@@ -5,6 +5,7 @@ namespace SilverStripe\Forms\Tests;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\RequiredFields;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class TextareaFieldTest extends SapphireTest
 {
@@ -59,8 +60,7 @@ class TextareaFieldTest extends SapphireTest
         $field = new TextareaField("Test", "Test");
         $field->setMaxLength(5);
         $field->setValue("John Doe"); // 8 characters, so should fail
-        $result = $field->validate(new RequiredFields());
-        $this->assertFalse($result);
+        $this->assertFalse($field->validate()->isValid());
     }
 
     /**
@@ -71,8 +71,7 @@ class TextareaFieldTest extends SapphireTest
         $field = new TextareaField("Test", "Test");
         $field->setMaxLength(5);
         $field->setValue("John"); // 4 characters, so should pass
-        $result = $field->validate(new RequiredFields());
-        $this->assertTrue($result);
+        $this->assertTrue($field->validate()->isValid());
     }
 
     public function testValueEntities()
@@ -92,5 +91,40 @@ class TextareaFieldTest extends SapphireTest
             false,
             $field->obj('ValueEntities')->getProcessShortcodes()
         );
+    }
+
+    public static function provideValidate(): array
+    {
+        return [
+            'valid-string' => [
+                'value' => 'abc',
+                'expected' => true,
+            ],
+            'valid-blank-string' => [
+                'value' => '',
+                'expected' => true,
+            ],
+            'valid-null' => [
+                'value' => null,
+                'expected' => true,
+            ],
+            'invalid-too-long' => [
+                'value' => 'abcd',
+                'expected' => false,
+            ],
+            'invalid-int' => [
+                'value' => 123,
+                'expected' => false,
+            ],
+        ];
+    }
+
+    #[DataProvider('provideValidate')]
+    public function testValidate(mixed $value, bool $expected): void
+    {
+        $field = new TextareaField('Test');
+        $field->setMaxLength(3);
+        $field->setValue($value);
+        $this->assertSame($expected, $field->validate()->isValid());
     }
 }

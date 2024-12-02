@@ -13,6 +13,8 @@ use SilverStripe\Forms\RequiredFields;
 use SilverStripe\Forms\Tests\DatetimeFieldTest\Model;
 use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\FieldType\DBDatetime;
+use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionMethod;
 
 class DatetimeFieldTest extends SapphireTest
 {
@@ -40,10 +42,8 @@ class DatetimeFieldTest extends SapphireTest
         $dateTimeField = new DatetimeField('MyDatetime');
         $form = $this->getMockForm();
         $form->Fields()->push($dateTimeField);
-
         $dateTimeField->setSubmittedValue('2003-03-29T23:59:38');
-        $validator = new RequiredFields();
-        $this->assertTrue($dateTimeField->validate($validator));
+        $this->assertTrue($dateTimeField->validate()->isValid());
         $m = new Model();
         $form->saveInto($m);
         $this->assertEquals('2003-03-29 23:59:38', $m->MyDatetime);
@@ -61,8 +61,7 @@ class DatetimeFieldTest extends SapphireTest
 
         // en_NZ standard format
         $dateTimeField->setSubmittedValue('29/03/2003 11:59:38 pm');
-        $validator = new RequiredFields();
-        $this->assertTrue($dateTimeField->validate($validator));
+        $this->assertTrue($dateTimeField->validate()->isValid());
         $m = new Model();
         $form->saveInto($m);
         $this->assertEquals('2003-03-29 23:59:38', $m->MyDatetime);
@@ -123,6 +122,10 @@ class DatetimeFieldTest extends SapphireTest
         $f = new DatetimeField('Datetime', 'Datetime');
         $f->setValue('2003-03-29T23:59:38');
         $this->assertEquals('2003-03-29 23:59:38', $f->dataValue(), 'Accepts normalised ISO');
+
+        $f = new DatetimeField('Datetime', 'Datetime');
+        $f->setValue(null);
+        $this->assertEquals(null, $f->dataValue());
     }
 
     public function testSubmittedValue()
@@ -158,23 +161,26 @@ class DatetimeFieldTest extends SapphireTest
     public function testValidate()
     {
         $field = new DatetimeField('Datetime', 'Datetime', '2003-03-29 23:59:38');
-        $this->assertTrue($field->validate(new RequiredFields()));
+        $this->assertTrue($field->validate()->isValid());
 
         $field = new DatetimeField('Datetime', 'Datetime', '2003-03-29T23:59:38');
-        $this->assertTrue($field->validate(new RequiredFields()), 'Normalised ISO');
+        $this->assertTrue($field->validate()->isValid(), 'Normalised ISO');
 
         $field = new DatetimeField('Datetime', 'Datetime', '2003-03-29');
-        $this->assertFalse($field->validate(new RequiredFields()), 'Leaving out time');
+        $this->assertFalse($field->validate()->isValid(), 'Leaving out time');
 
         $field = (new DatetimeField('Datetime', 'Datetime'))
             ->setSubmittedValue('2003-03-29T00:00');
-        $this->assertTrue($field->validate(new RequiredFields()), 'Leaving out seconds (like many browsers)');
+        $this->assertTrue($field->validate()->isValid(), 'Leaving out seconds (like many browsers)');
 
         $field = new DatetimeField('Datetime', 'Datetime', 'wrong');
-        $this->assertFalse($field->validate(new RequiredFields()));
+        $this->assertFalse($field->validate()->isValid());
 
         $field = new DatetimeField('Datetime', 'Datetime', false);
-        $this->assertTrue($field->validate(new RequiredFields()));
+        $this->assertFalse($field->validate()->isValid());
+
+        $field = new DatetimeField('Datetime', 'Datetime');
+        $this->assertTrue($field->validate()->isValid());
     }
 
     public function testSetMinDate()
@@ -206,22 +212,22 @@ class DatetimeFieldTest extends SapphireTest
         $dateField = new DatetimeField('Datetime');
         $dateField->setMinDatetime('2009-03-31 23:00:00');
         $dateField->setValue('2009-03-31 23:00:01');
-        $this->assertTrue($dateField->validate(new RequiredFields()), 'Time above min datetime');
+        $this->assertTrue($dateField->validate()->isValid(), 'Time above min datetime');
 
         $dateField = new DatetimeField('Datetime');
         $dateField->setMinDatetime('2009-03-31 23:00:00');
         $dateField->setValue('2009-03-31 22:00:00');
-        $this->assertFalse($dateField->validate(new RequiredFields()), 'Time below min datetime');
+        $this->assertFalse($dateField->validate()->isValid(), 'Time below min datetime');
 
         $dateField = new DatetimeField('Datetime');
         $dateField->setMinDatetime('2009-03-31 23:00:00');
         $dateField->setValue('2009-03-31 23:00:00');
-        $this->assertTrue($dateField->validate(new RequiredFields()), 'Date and time matching min datetime');
+        $this->assertTrue($dateField->validate()->isValid(), 'Date and time matching min datetime');
 
         $dateField = new DatetimeField('Datetime');
         $dateField->setMinDatetime('2009-03-31 23:00:00');
         $dateField->setValue('2008-03-31 23:00:00');
-        $this->assertFalse($dateField->validate(new RequiredFields()), 'Date below min datetime');
+        $this->assertFalse($dateField->validate()->isValid(), 'Date below min datetime');
     }
 
     public function testValidateMinDateWithSubmittedValueAndTimezone()
@@ -233,25 +239,25 @@ class DatetimeFieldTest extends SapphireTest
         $dateField->setTimezone('Pacific/Auckland');
         $dateField->setMinDatetime('2009-01-30 23:00:00'); // server timezone (Berlin)
         $dateField->setSubmittedValue('2009-01-31T11:00:01'); // frontend timezone (Auckland)
-        $this->assertTrue($dateField->validate(new RequiredFields()), 'Time above min datetime');
+        $this->assertTrue($dateField->validate()->isValid(), 'Time above min datetime');
 
         $dateField = new DatetimeField('Datetime');
         $dateField->setTimezone('Pacific/Auckland');
         $dateField->setMinDatetime('2009-01-30 23:00:00');
         $dateField->setSubmittedValue('2009-01-31T10:00:00');
-        $this->assertFalse($dateField->validate(new RequiredFields()), 'Time below min datetime');
+        $this->assertFalse($dateField->validate()->isValid(), 'Time below min datetime');
 
         $dateField = new DatetimeField('Datetime');
         $dateField->setTimezone('Pacific/Auckland');
         $dateField->setMinDatetime('2009-01-30 23:00:00');
         $dateField->setSubmittedValue('2009-01-31T11:00:00');
-        $this->assertTrue($dateField->validate(new RequiredFields()), 'Date and time matching min datetime');
+        $this->assertTrue($dateField->validate()->isValid(), 'Date and time matching min datetime');
 
         $dateField = new DatetimeField('Datetime');
         $dateField->setTimezone('Pacific/Auckland');
         $dateField->setMinDatetime('2009-01-30 23:00:00');
         $dateField->setSubmittedValue('2008-01-31T11:00:00');
-        $this->assertFalse($dateField->validate(new RequiredFields()), 'Date below min datetime');
+        $this->assertFalse($dateField->validate()->isValid(), 'Date below min datetime');
     }
 
     public function testValidateMinDateStrtotime()
@@ -259,12 +265,12 @@ class DatetimeFieldTest extends SapphireTest
         $f = new DatetimeField('Datetime');
         $f->setMinDatetime('-7 days');
         $f->setValue(date('Y-m-d H:i:s', strtotime('-8 days', DBDatetime::now()->getTimestamp())));
-        $this->assertFalse($f->validate(new RequiredFields()), 'Date below min datetime, with strtotime');
+        $this->assertFalse($f->validate()->isValid(), 'Date below min datetime, with strtotime');
 
         $f = new DatetimeField('Datetime');
         $f->setMinDatetime('-7 days');
         $f->setValue(date('Y-m-d H:i:s', strtotime('-7 days', DBDatetime::now()->getTimestamp())));
-        $this->assertTrue($f->validate(new RequiredFields()), 'Date matching min datetime, with strtotime');
+        $this->assertTrue($f->validate()->isValid(), 'Date matching min datetime, with strtotime');
     }
 
     public function testValidateMaxDateStrtotime()
@@ -272,12 +278,12 @@ class DatetimeFieldTest extends SapphireTest
         $f = new DatetimeField('Datetime');
         $f->setMaxDatetime('7 days');
         $f->setValue(date('Y-m-d H:i:s', strtotime('8 days', DBDatetime::now()->getTimestamp())));
-        $this->assertFalse($f->validate(new RequiredFields()), 'Date above max date, with strtotime');
+        $this->assertFalse($f->validate()->isValid(), 'Date above max date, with strtotime');
 
         $f = new DatetimeField('Datetime');
         $f->setMaxDatetime('7 days');
         $f->setValue(date('Y-m-d H:i:s', strtotime('7 days', DBDatetime::now()->getTimestamp())));
-        $this->assertTrue($f->validate(new RequiredFields()), 'Date matching max date, with strtotime');
+        $this->assertTrue($f->validate()->isValid(), 'Date matching max date, with strtotime');
     }
 
     public function testValidateMaxDate()
@@ -285,22 +291,22 @@ class DatetimeFieldTest extends SapphireTest
         $f = new DatetimeField('Datetime');
         $f->setMaxDatetime('2009-03-31 23:00:00');
         $f->setValue('2009-03-31 22:00:00');
-        $this->assertTrue($f->validate(new RequiredFields()), 'Time below max datetime');
+        $this->assertTrue($f->validate()->isValid(), 'Time below max datetime');
 
         $f = new DatetimeField('Datetime');
         $f->setMaxDatetime('2009-03-31 23:00:00');
         $f->setValue('2010-03-31 23:00:01');
-        $this->assertFalse($f->validate(new RequiredFields()), 'Time above max datetime');
+        $this->assertFalse($f->validate()->isValid(), 'Time above max datetime');
 
         $f = new DatetimeField('Datetime');
         $f->setMaxDatetime('2009-03-31 23:00:00');
         $f->setValue('2009-03-31 23:00:00');
-        $this->assertTrue($f->validate(new RequiredFields()), 'Date and time matching max datetime');
+        $this->assertTrue($f->validate()->isValid(), 'Date and time matching max datetime');
 
         $f = new DatetimeField('Datetime');
         $f->setMaxDatetime('2009-03-31 23:00:00');
         $f->setValue('2010-03-31 23:00:00');
-        $this->assertFalse($f->validate(new RequiredFields()), 'Date above max datetime');
+        $this->assertFalse($f->validate()->isValid(), 'Date above max datetime');
     }
 
     public function testValidateMaxDateWithSubmittedValueAndTimezone()
@@ -312,25 +318,25 @@ class DatetimeFieldTest extends SapphireTest
         $f->setTimezone('Pacific/Auckland');
         $f->setMaxDatetime('2009-01-31 23:00:00'); // server timezone (Berlin)
         $f->setSubmittedValue('2009-01-31T10:00:00'); // frontend timezone (Auckland)
-        $this->assertTrue($f->validate(new RequiredFields()), 'Time below max datetime');
+        $this->assertTrue($f->validate()->isValid(), 'Time below max datetime');
 
         $f = new DatetimeField('Datetime');
         $f->setTimezone('Pacific/Auckland');
         $f->setMaxDatetime('2009-01-31 23:00:00');
         $f->setSubmittedValue('2010-01-31T11:00:01');
-        $this->assertFalse($f->validate(new RequiredFields()), 'Time above max datetime');
+        $this->assertFalse($f->validate()->isValid(), 'Time above max datetime');
 
         $f = new DatetimeField('Datetime');
         $f->setTimezone('Pacific/Auckland');
         $f->setMaxDatetime('2009-01-31 23:00:00');
         $f->setSubmittedValue('2009-01-31T11:00:00');
-        $this->assertTrue($f->validate(new RequiredFields()), 'Date and time matching max datetime');
+        $this->assertTrue($f->validate()->isValid(), 'Date and time matching max datetime');
 
         $f = new DatetimeField('Datetime');
         $f->setTimezone('Pacific/Auckland');
         $f->setMaxDatetime('2009-01-31 23:00:00');
         $f->setSubmittedValue('2010-01-31T11:00:00');
-        $this->assertFalse($f->validate(new RequiredFields()), 'Date above max datetime');
+        $this->assertFalse($f->validate()->isValid(), 'Date above max datetime');
     }
 
     public function testTimezoneSetValueLocalised()
@@ -392,7 +398,7 @@ class DatetimeFieldTest extends SapphireTest
         $datetimeField->setTimezone('Europe/Moscow');
         // pass in default format, at user time (Moscow)
         $datetimeField->setSubmittedValue('24/06/2003 11:59:59 pm');
-        $this->assertTrue($datetimeField->validate(new RequiredFields()));
+        $this->assertTrue($datetimeField->validate()->isValid());
         $this->assertEquals('2003-06-24 21:59:59', $datetimeField->dataValue(), 'Data value matches server timezone');
     }
 
@@ -529,5 +535,53 @@ class DatetimeFieldTest extends SapphireTest
                 new FormAction('doSubmit')
             )
         );
+    }
+
+    public static function provideTidyInternal(): array
+    {
+        return [
+            'datetime-only' => [
+                'date' => '1980-05-10 12:34:56',
+                'returnNullOnFailure' => false,
+                'expected' => '1980-05-10 12:34:56',
+            ],
+            'no-time' => [
+                'date' => '1980-05-10',
+                'returnNullOnFailure' => false,
+                'expected' => '1980-05-10 00:00:00',
+            ],
+            // will fallback to strtotime, which is not ideal
+            // though is existing logic
+            'no-date' => [
+                'date' => '12:34:56',
+                'returnNullOnFailure' => false,
+                'expected' => '2010-04-04 12:34:56',
+            ],
+            'null' => [
+                'date' => null,
+                'returnNullOnFailure' => false,
+                'expected' => null,
+            ],
+            'cannot-parse-not-null-on-failure' => [
+                'date' => 'fish',
+                'returnNullOnFailure' => false,
+                'expected' => 'fish',
+            ],
+            'cannot-parse-null-on-failure' => [
+                'date' => 'fish',
+                'returnNullOnFailure' => true,
+                'expected' => null,
+            ],
+        ];
+    }
+
+    #[DataProvider('provideTidyInternal')]
+    public function testTidyInternal(?string $date, bool $returnNullOnFailure, ?string $expected): void
+    {
+        $field = new DatetimeField('Date');
+        $method = new ReflectionMethod($field, 'tidyInternal');
+        $method->setAccessible(true);
+        $actual = $method->invoke($field, $date, $returnNullOnFailure);
+        $this->assertEquals($expected, $actual);
     }
 }

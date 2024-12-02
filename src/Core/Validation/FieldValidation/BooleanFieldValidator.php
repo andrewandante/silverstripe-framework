@@ -3,7 +3,6 @@
 namespace SilverStripe\Core\Validation\FieldValidation;
 
 use SilverStripe\Core\Validation\ValidationResult;
-use SilverStripe\Core\Validation\FieldValidation\FieldValidator;
 
 /**
  * Validates that a value is a boolean

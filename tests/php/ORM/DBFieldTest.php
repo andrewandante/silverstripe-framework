@@ -57,6 +57,7 @@ use SilverStripe\ORM\FieldType\DBEmail;
 use SilverStripe\Core\Validation\FieldValidation\DatetimeFieldValidator;
 use SilverStripe\ORM\FieldType\DBClassNameVarchar;
 use SilverStripe\Core\Validation\FieldValidation\NumericFieldValidator;
+use SilverStripe\Core\Validation\FieldValidation\NumericNonStringFieldValidator;
 
 /**
  * Tests for DBField objects.
@@ -488,7 +489,7 @@ class DBFieldTest extends SapphireTest
                 DecimalFieldValidator::class,
             ],
             DBDouble::class => [
-                NumericFieldValidator::class,
+                NumericNonStringFieldValidator::class,
             ],
             DBEmail::class => [
                 StringFieldValidator::class,
@@ -499,7 +500,7 @@ class DBFieldTest extends SapphireTest
                 OptionFieldValidator::class,
             ],
             DBFloat::class => [
-                NumericFieldValidator::class,
+                NumericNonStringFieldValidator::class,
             ],
             DBForeignKey::class => [
                 IntFieldValidator::class,

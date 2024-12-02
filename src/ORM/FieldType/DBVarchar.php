@@ -20,7 +20,10 @@ use SilverStripe\Core\Validation\FieldValidation\StringFieldValidator;
 class DBVarchar extends DBString
 {
     private static array $field_validators = [
-        StringFieldValidator::class => [null, 'getSize'],
+        StringFieldValidator::class => [
+            'minLength' => null,
+            'maxLength' => 'getSize',
+        ],
     ];
 
     private static array $casting = [

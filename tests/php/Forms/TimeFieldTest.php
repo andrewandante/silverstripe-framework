@@ -9,6 +9,8 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\TimeField;
 use SilverStripe\Forms\RequiredFields;
 use SilverStripe\i18n\i18n;
+use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionMethod;
 
 class TimeFieldTest extends SapphireTest
 {
@@ -33,24 +35,27 @@ class TimeFieldTest extends SapphireTest
     public function testValidate()
     {
         $f = new TimeField('Time', 'Time', '11pm');
-        $this->assertTrue($f->validate(new RequiredFields()));
+        $this->assertTrue($f->validate()->isValid());
 
         $f = new TimeField('Time', 'Time', '23:59');
-        $this->assertTrue($f->validate(new RequiredFields()));
+        $this->assertTrue($f->validate()->isValid());
 
         $f = new TimeField('Time', 'Time', 'wrong');
-        $this->assertFalse($f->validate(new RequiredFields()));
+        $this->assertFalse($f->validate()->isValid());
+
+        $f = new TimeField('Time', 'Time');
+        $this->assertTrue($f->validate()->isValid());
     }
 
     public function testValidateLenientWithHtml5()
     {
         $f = new TimeField('Time', 'Time', '23:59:59');
         $f->setHTML5(true);
-        $this->assertTrue($f->validate(new RequiredFields()));
+        $this->assertTrue($f->validate()->isValid());
 
         $f = new TimeField('Time', 'Time', '23:59'); // leave out seconds
         $f->setHTML5(true);
-        $this->assertTrue($f->validate(new RequiredFields()));
+        $this->assertTrue($f->validate()->isValid());
     }
 
     public function testSetLocale()
@@ -72,7 +77,7 @@ class TimeFieldTest extends SapphireTest
             '23:00:00',
             'Setting value to "11pm" parses with strtotime enabled'
         );
-        $this->assertTrue($f->validate(new RequiredFields()));
+        $this->assertTrue($f->validate()->isValid());
 
         $f = new TimeField('Time', 'Time');
         $f->setValue('11:59pm');
@@ -175,5 +180,51 @@ class TimeFieldTest extends SapphireTest
         $f->setValue('15:59:00');
         $f->setLocale('de_DE');
         $f->Value();
+    }
+
+    public static function provideTidyInternal(): array
+    {
+        return [
+            'time' => [
+                'time' => '12:34:56',
+                'returnNullOnFailure' => false,
+                'expected' => '12:34:56',
+            ],
+            'remove-date' => [
+                'time' => '1980-05-10 12:34:56',
+                'returnNullOnFailure' => false,
+                'expected' => '12:34:56',
+            ],
+            'date-only' => [
+                'time' => '1980-05-10',
+                'returnNullOnFailure' => false,
+                'expected' => '00:00:00',
+            ],
+            'null' => [
+                'time' => null,
+                'returnNullOnFailure' => false,
+                'expected' => null,
+            ],
+            'cannot-parse-not-null-on-failure' => [
+                'time' => 'fish',
+                'returnNullOnFailure' => false,
+                'expected' => 'fish',
+            ],
+            'cannot-parse-null-on-failure' => [
+                'time' => 'fish',
+                'returnNullOnFailure' => true,
+                'expected' => null,
+            ],
+        ];
+    }
+
+    #[DataProvider('provideTidyInternal')]
+    public function testTidyInternal(?string $time, bool $returnNullOnFailure, ?string $expected): void
+    {
+        $field = new TimeField('Time');
+        $method = new ReflectionMethod($field, 'tidyInternal');
+        $method->setAccessible(true);
+        $actual = $method->invoke($field, $time, $returnNullOnFailure);
+        $this->assertEquals($expected, $actual);
     }
 }

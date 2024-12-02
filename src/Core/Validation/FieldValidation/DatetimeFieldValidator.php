@@ -2,8 +2,6 @@
 
 namespace SilverStripe\Core\Validation\FieldValidation;
 
-use SilverStripe\Core\Validation\FieldValidation\DateFieldValidator;
-
 /**
  * Validates that a value is a valid date/time, which means that it follows the equivalent formats:
  * - PHP date format Y-m-d H:i:s

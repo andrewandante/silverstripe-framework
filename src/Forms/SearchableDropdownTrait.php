@@ -416,14 +416,6 @@ trait SearchableDropdownTrait
         }
     }
 
-    /**
-     * @param Validator $validator
-     */
-    public function validate($validator): bool
-    {
-        return $this->extendValidationResult(true, $validator);
-    }
-
     public function getSchemaDataType(): string
     {
         if ($this->isMultiple) {

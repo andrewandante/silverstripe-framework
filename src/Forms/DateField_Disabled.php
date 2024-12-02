@@ -22,26 +22,27 @@ class DateField_Disabled extends DateField
         $value = $this->dataValue();
 
         if ($value) {
-            $value = $this->tidyInternal($value);
+            $value = $this->tidyInternal($value, true);
             $df = new DBDate($this->name);
             $df->setValue($value);
-
-            if ($df->IsToday()) {
-                // e.g. 2018-06-01 (today)
-                $format = '%s (%s)';
-                $infoComplement = _t('SilverStripe\\Forms\\DateField.TODAY', 'today');
-            } else {
-                // e.g. 2018-06-01, 5 days ago
-                $format = '%s, %s';
-                $infoComplement = $df->Ago();
+            // if the date is not valid, $df->getValue() will return false
+            if ($df->getValue()) {
+                if ($df->IsToday()) {
+                    // e.g. 2018-06-01 (today)
+                    $format = '%s (%s)';
+                    $infoComplement = _t('SilverStripe\\Forms\\DateField.TODAY', 'today');
+                } else {
+                    // e.g. 2018-06-01, 5 days ago
+                    $format = '%s, %s';
+                    $infoComplement = $df->Ago();
+                }
+                // Render the display value with some complement of info
+                $displayValue = Convert::raw2xml(sprintf(
+                    $format ?? '',
+                    $this->Value(),
+                    $infoComplement
+                ));
             }
-
-            // Render the display value with some complement of info
-            $displayValue = Convert::raw2xml(sprintf(
-                $format ?? '',
-                $this->Value(),
-                $infoComplement
-            ));
         }
 
         return sprintf(

@@ -25,39 +25,38 @@ class GroupedDropdownFieldTest extends SapphireTest
                 ],
             ]
         );
+        // Despite setting string keys "1", "2", "3", "4", PHP (not Silverstripe)
+        // will convert these to int 1, 2, 3, 4
+        $this->assertSame([1, 2, 3, 4], $field->getValidValues());
 
-        $this->assertEquals(["1", "2", "3", "4"], $field->getValidValues());
-
-        $validator = new RequiredFields();
-
-        $field->setValue("1");
-        $this->assertTrue($field->validate($validator));
+        $field->setValue(1);
+        $this->assertTrue($field->validate()->isValid());
 
         //test grouped values
-        $field->setValue("3");
-        $this->assertTrue($field->validate($validator));
+        $field->setValue(3);
+        $this->assertTrue($field->validate()->isValid());
 
         //non-existent value should make the field invalid
         $field->setValue("Over 9000");
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
 
         //empty string shouldn't validate
         $field->setValue('');
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
 
         //empty field should validate after being set
         $field->setEmptyString('Empty String');
         $field->setValue('');
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
 
         //disabled items shouldn't validate
-        $field->setDisabledItems(['1']);
-        $field->setValue('1');
+        $field->setDisabledItems([1]);
+        $field->setValue(1);
 
-        $this->assertEquals(["2", "3", "4"], $field->getValidValues());
-        $this->assertEquals(["1"], $field->getDisabledItems());
+        $this->assertSame([2, 3, 4], $field->getValidValues());
+        $this->assertSame([1], $field->getDisabledItems());
 
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
     }
 
     /**

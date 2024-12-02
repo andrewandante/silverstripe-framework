@@ -117,19 +117,18 @@ class MoneyFieldTest extends SapphireTest
         $field->setAllowedCurrencies(['NZD', 'USD']);
 
         // Valid currency
-        $validator = new RequiredFields();
         $field->setSubmittedValue([
             'Currency' => 'NZD',
             'Amount' => 123
         ]);
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
 
         // Invalid currency
         $field->setSubmittedValue([
             'Currency' => 'EUR',
             'Amount' => 123
         ]);
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
     }
 
     public function testGetCurrencyField(): void
@@ -145,6 +144,12 @@ class MoneyFieldTest extends SapphireTest
         $this->assertInstanceOf(HiddenField::class, $field->getCurrencyField());
         $this->assertEquals('Money[Currency]', $field->getCurrencyField()->getName());
 
+        $field->setValue('123 NZD');
+        $this->assertInstanceOf(TextField::class, $field->getCurrencyField());
+
+        $field->setAllowedCurrencies(['NZD']);
+        $this->assertInstanceOf(HiddenField::class, $field->getCurrencyField());
+
         $field->setAllowedCurrencies([]);
 
         $this->assertInstanceOf(TextField::class, $field->getCurrencyField());
@@ -157,5 +162,15 @@ class MoneyFieldTest extends SapphireTest
         $this->assertInstanceOf(NumericField::class, $field->getAmountField());
         $this->assertEquals(2, $field->getAmountField()->getScale());
         $this->assertEquals('Money[Amount]', $field->getAmountField()->getName());
+    }
+
+    public function testGetValueForValidation(): void
+    {
+        $field = new MoneyField('Money');
+        $expected = [
+            $field->getAmountField(),
+            $field->getCurrencyField(),
+        ];
+        $this->assertSame($expected, $field->getValueForValidation());
     }
 }

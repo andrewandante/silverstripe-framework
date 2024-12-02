@@ -8,6 +8,7 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\NumericField;
 
 class ValidatorForm extends Form implements TestOnly
 {
@@ -20,7 +21,7 @@ class ValidatorForm extends Form implements TestOnly
             new FieldList(
                 new TextField('Email'),
                 new TextField('Surname'),
-                new TextField('ID'),
+                new NumericField('ID'),
                 new TextField('FirstName')
             ),
             new FieldList(

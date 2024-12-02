@@ -9,14 +9,11 @@ class FieldsValidator extends Validator
 {
     public function php($data): bool
     {
-        $valid = true;
         $fields = $this->form->Fields();
-
         foreach ($fields as $field) {
-            $valid = ($field->validate($this) && $valid);
+            $this->result->combineAnd($field->validate());
         }
-
-        return $valid;
+        return $this->result->isValid();
     }
 
     public function canBeCached(): bool

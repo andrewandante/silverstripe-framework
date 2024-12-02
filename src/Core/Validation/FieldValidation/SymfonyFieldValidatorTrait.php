@@ -5,7 +5,6 @@ namespace SilverStripe\Core\Validation\FieldValidation;
 use LogicException;
 use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Core\Validation\ConstraintValidator;
-use SilverStripe\Core\Validation\FieldValidation\SymfonyFieldValidatorInterface;
 
 /**
  * Trait for FieldValidators which validate using Symfony constraints

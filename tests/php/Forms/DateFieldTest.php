@@ -11,6 +11,8 @@ use SilverStripe\Forms\RequiredFields;
 use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBDatetime;
+use ReflectionMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class DateFieldTest extends SapphireTest
 {
@@ -21,22 +23,38 @@ class DateFieldTest extends SapphireTest
         DBDatetime::set_mock_now('2011-02-01 8:34:00');
     }
 
+    public function testSetMinDate()
+    {
+        $f = (new DateField('Date'))->setMinDate('2009-03-31');
+        $this->assertEquals($f->getMinDate(), '2009-03-31');
+        $f = (new DateField('Date'))->setMinDate('invalid');
+        $this->assertNull($f->getMinDate());
+    }
+
+    public function testSetMaxDate()
+    {
+        $f = (new DateField('Date'))->setMaxDate('2009-03-31');
+        $this->assertEquals($f->getMaxDate(), '2009-03-31');
+        $f = (new DateField('Date'))->setMaxDate('invalid');
+        $this->assertNull($f->getMaxDate());
+    }
+
     public function testValidateMinDate()
     {
         $dateField = new DateField('Date');
         $dateField->setMinDate('2009-03-31');
         $dateField->setValue('2010-03-31');
-        $this->assertTrue($dateField->validate(new RequiredFields()), 'Date above min date');
+        $this->assertTrue($dateField->validate()->isValid());
 
         $dateField = new DateField('Date');
         $dateField->setMinDate('2009-03-31');
         $dateField->setValue('1999-03-31');
-        $this->assertFalse($dateField->validate(new RequiredFields()), 'Date below min date');
+        $this->assertFalse($dateField->validate()->isValid());
 
         $dateField = new DateField('Date');
         $dateField->setMinDate('2009-03-31');
         $dateField->setValue('2009-03-31');
-        $this->assertTrue($dateField->validate(new RequiredFields()), 'Date matching min date');
+        $this->assertTrue($dateField->validate()->isValid());
     }
 
     public function testValidateMinDateStrtotime()
@@ -44,12 +62,12 @@ class DateFieldTest extends SapphireTest
         $f = new DateField('Date');
         $f->setMinDate('-7 days');
         $f->setValue(date('Y-m-d', strtotime('-8 days', DBDatetime::now()->getTimestamp())));
-        $this->assertFalse($f->validate(new RequiredFields()), 'Date below min date, with strtotime');
+        $this->assertFalse($f->validate()->isValid());
 
         $f = new DateField('Date');
         $f->setMinDate('-7 days');
         $f->setValue(date('Y-m-d', strtotime('-7 days', DBDatetime::now()->getTimestamp())));
-        $this->assertTrue($f->validate(new RequiredFields()), 'Date matching min date, with strtotime');
+        $this->assertTrue($f->validate()->isValid());
     }
 
     public function testValidateMaxDateStrtotime()
@@ -57,12 +75,12 @@ class DateFieldTest extends SapphireTest
         $f = new DateField('Date');
         $f->setMaxDate('7 days');
         $f->setValue(date('Y-m-d', strtotime('8 days', DBDatetime::now()->getTimestamp())));
-        $this->assertFalse($f->validate(new RequiredFields()), 'Date above max date, with strtotime');
+        $this->assertFalse($f->validate()->isValid());
 
         $f = new DateField('Date');
         $f->setMaxDate('7 days');
         $f->setValue(date('Y-m-d', strtotime('7 days', DBDatetime::now()->getTimestamp())));
-        $this->assertTrue($f->validate(new RequiredFields()), 'Date matching max date, with strtotime');
+        $this->assertTrue($f->validate()->isValid());
     }
 
     public function testValidateMaxDate()
@@ -70,17 +88,17 @@ class DateFieldTest extends SapphireTest
         $f = new DateField('Date');
         $f->setMaxDate('2009-03-31');
         $f->setValue('1999-03-31');
-        $this->assertTrue($f->validate(new RequiredFields()), 'Date above min date');
+        $this->assertTrue($f->validate()->isValid());
 
         $f = new DateField('Date');
         $f->setMaxDate('2009-03-31');
         $f->setValue('2010-03-31');
-        $this->assertFalse($f->validate(new RequiredFields()), 'Date above max date');
+        $this->assertFalse($f->validate()->isValid());
 
         $f = new DateField('Date');
         $f->setMaxDate('2009-03-31');
         $f->setValue('2009-03-31');
-        $this->assertTrue($f->validate(new RequiredFields()), 'Date matching max date');
+        $this->assertTrue($f->validate()->isValid());
     }
 
     public function testConstructorWithoutArgs()
@@ -92,7 +110,7 @@ class DateFieldTest extends SapphireTest
     public function testConstructorWithDateString()
     {
         $f = new DateField('Date', 'Date', '29/03/2003');
-        $this->assertEquals(null, $f->dataValue());
+        $this->assertEquals('29/03/2003', $f->dataValue());
         $f = new DateField('Date', 'Date', '2003-03-29 12:23:00');
         $this->assertEquals('2003-03-29', $f->dataValue());
     }
@@ -110,6 +128,9 @@ class DateFieldTest extends SapphireTest
 
         $f = (new DateField('Date', 'Date'))->setValue('2011-01-31 23:59:59');
         $this->assertEquals($f->Value(), '2011-01-31', 'ISO format with time accepted');
+
+        $f->setValue(null);
+        $this->assertNull($f->Value());
     }
 
     public function testSetValueWithLocalisedDateString()
@@ -131,18 +152,20 @@ class DateFieldTest extends SapphireTest
     {
         // Constructor only accepts iso8601
         $f = new DateField('Date', 'Date', '29/03/2003');
-        $this->assertFalse($f->validate(new RequiredFields()));
+        $this->assertSame('29/03/2003', $f->getValue());
+        $this->assertFalse($f->validate()->isValid());
 
-        // Set via submitted value (localised) accepts this, however
+        // Set via submitted value (localised) accepts this, convert it to iso8601 though
+        // though it may change the date if the local format is ambiguous
         $f = new DateField('Date', 'Date');
         $f->setSubmittedValue('29/03/2003');
-        $this->assertTrue($f->validate(new RequiredFields()));
+        $this->assertSame('2034-08-24', $f->getValue());
+        $this->assertTrue($f->validate()->isValid());
 
+        // iso8601 is accepted
         $f = new DateField('Date', 'Date', '2003-03-29');
-        $this->assertTrue($f->validate(new RequiredFields()));
-
-        $f = new DateField('Date', 'Date', 'wrong');
-        $this->assertFalse($f->validate(new RequiredFields()));
+        $this->assertSame('2003-03-29', $f->getValue());
+        $this->assertTrue($f->validate()->isValid());
     }
 
     public function testFormatEnNz()
@@ -266,7 +289,47 @@ class DateFieldTest extends SapphireTest
     public function testValidateWithoutValueReturnsTrue()
     {
         $field = new DateField('Date');
-        $validator = new RequiredFields();
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
+    }
+
+    public static function provideTidyInternal(): array
+    {
+        return [
+            'date-only' => [
+                'date' => '1980-05-10',
+                'returnNullOnFailure' => false,
+                'expected' => '1980-05-10',
+            ],
+            'remove-time' => [
+                'date' => '1980-05-10 12:34:56',
+                'returnNullOnFailure' => false,
+                'expected' => '1980-05-10',
+            ],
+            'null' => [
+                'date' => null,
+                'returnNullOnFailure' => false,
+                'expected' => null,
+            ],
+            'cannot-parse-not-null-on-failure' => [
+                'date' => 'fish',
+                'returnNullOnFailure' => false,
+                'expected' => 'fish',
+            ],
+            'cannot-parse-null-on-failure' => [
+                'date' => 'fish',
+                'returnNullOnFailure' => true,
+                'expected' => null,
+            ],
+        ];
+    }
+
+    #[DataProvider('provideTidyInternal')]
+    public function testTidyInternal(?string $date, bool $returnNullOnFailure, ?string $expected): void
+    {
+        $field = new DateField('Date');
+        $method = new ReflectionMethod($field, 'tidyInternal');
+        $method->setAccessible(true);
+        $actual = $method->invoke($field, $date, $returnNullOnFailure);
+        $this->assertEquals($expected, $actual);
     }
 }

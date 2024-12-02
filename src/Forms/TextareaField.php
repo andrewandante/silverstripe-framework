@@ -2,6 +2,8 @@
 
 namespace SilverStripe\Forms;
 
+use SilverStripe\Core\Validation\FieldValidation\StringFieldValidator;
+
 /**
  * TextareaField creates a multi-line text field,
  * allowing more data to be entered than a standard
@@ -18,6 +20,12 @@ namespace SilverStripe\Forms;
  */
 class TextareaField extends FormField
 {
+    private static array $field_validators = [
+        StringFieldValidator::class => [
+            'minLength' => null,
+            'maxLength' => 'getMaxLength'
+        ],
+    ];
 
     /**
      * Value should be XML
@@ -164,31 +172,6 @@ class TextareaField extends FormField
         }
 
         return $parent;
-    }
-
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        $result = true;
-        if (!is_null($this->maxLength) && mb_strlen($this->value ?? '') > $this->maxLength) {
-            $name = strip_tags($this->Title() ? $this->Title() : $this->getName());
-            $validator->validationError(
-                $this->name,
-                _t(
-                    'SilverStripe\\Forms\\TextField.VALIDATEMAXLENGTH',
-                    'The value for {name} must not exceed {maxLength} characters in length',
-                    ['name' => $name, 'maxLength' => $this->maxLength]
-                ),
-                "validation"
-            );
-            $result = false;
-        }
-        return $this->extendValidationResult($result, $validator);
     }
 
     public function getSchemaValidation()

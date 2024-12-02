@@ -6,6 +6,7 @@ use SilverStripe\Core\Convert;
 use SilverStripe\Core\ArrayLib;
 use SilverStripe\ORM\DataObjectInterface;
 use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\Core\Validation\FieldValidation\MultiOptionFieldValidator;
 
 /**
  * Read-only complement of {@link MultiSelectField}.
@@ -15,6 +16,10 @@ use SilverStripe\ORM\FieldType\DBField;
  */
 class LookupField extends MultiSelectField
 {
+    private static $field_validators = [
+        MultiOptionFieldValidator::class => null,
+    ];
+
     protected $schemaComponent = 'LookupField';
 
     /**
@@ -63,17 +68,6 @@ class LookupField extends MultiSelectField
         ]);
 
         return parent::Field($properties);
-    }
-
-    /**
-     * Ignore validation as the field is readonly
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        return $this->extendValidationResult(true, $validator);
     }
 
     /**

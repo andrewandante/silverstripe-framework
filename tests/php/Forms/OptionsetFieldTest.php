@@ -50,23 +50,30 @@ class OptionsetFieldTest extends SapphireTest
         $form = new Form(null, 'Form', new FieldList($field), new FieldList(), $validator);
 
         $field->setValue("One");
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
 
-        //non-existent value should make the field invalid
+        // non-existent value should make the field invalid
         $field->setValue("Three");
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
 
-        //empty string should pass field-level validation...
+        // empty string should fail field-level validation...
         $field->setValue('');
-        $this->assertTrue($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
+
+        // ... and should not pass "RequiredFields" validation
+        $this->assertFalse($form->validationResult()->isValid());
+
+        // null value should pass field-level validation...
+        $field->setValue(null);
+        $this->assertTrue($field->validate()->isValid());
 
         // ... but should not pass "RequiredFields" validation
         $this->assertFalse($form->validationResult()->isValid());
 
-        //disabled items shouldn't validate
+        // disabled items shouldn't validate
         $field->setDisabledItems(['Five']);
         $field->setValue('Five');
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
     }
 
     public function testReadonlyField()

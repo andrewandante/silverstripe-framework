@@ -15,54 +15,53 @@ class CurrencyFieldTest extends SapphireTest
     public function testValidate()
     {
         $f = new CurrencyField('TestField');
-        $validator = new RequiredFields();
 
         //tests with default currency symbol setting
         $f->setValue('123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates positive decimals'
         );
 
         $f->setValue('-123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates negative decimals'
         );
 
         $f->setValue('$123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates positive decimals with sign'
         );
 
         $f->setValue('-$123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates negative decimals with sign'
         );
 
         $f->setValue('$-123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates negative decimals with sign'
         );
 
         $f->setValue('324511434634');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates large integers'
         );
 
         $f->setValue('test$1.23test');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Alphanumeric is valid'
         );
 
         $f->setValue('$test');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Words are valid'
         );
 
@@ -71,49 +70,49 @@ class CurrencyFieldTest extends SapphireTest
 
         $f->setValue('123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates positive decimals'
         );
 
         $f->setValue('-123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates negative decimals'
         );
 
         $f->setValue('€123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates positive decimals with sign'
         );
 
         $f->setValue('-€123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates negative decimals with sign'
         );
 
         $f->setValue('€-123.45');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates negative decimals with sign'
         );
 
         $f->setValue('324511434634');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Validates large integers'
         );
 
         $f->setValue('test€1.23test');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Alphanumeric is valid'
         );
 
         $f->setValue('€test');
         $this->assertTrue(
-            $f->validate($validator),
+            $f->validate()->isValid(),
             'Words are valid'
         );
     }
@@ -300,16 +299,12 @@ class CurrencyFieldTest extends SapphireTest
     public function testInvalidCurrencySymbol()
     {
         $field = new CurrencyField('Test', '', '$5.00');
-        $validator = new RequiredFields();
-
         DBCurrency::config()->set('currency_symbol', '€');
-        $result = $field->validate($validator);
-
-        $this->assertFalse($result, 'Validation should fail since wrong currency was used');
-        $this->assertFalse($validator->getResult()->isValid(), 'Validator should receive failed state');
+        $result = $field->validate();
+        $this->assertFalse($result->isValid());
         $this->assertStringContainsString(
             'Please enter a valid currency',
-            json_encode($validator->getResult()->__serialize())
+            json_encode($result->getMessages())
         );
     }
 }

@@ -3,12 +3,11 @@
 namespace SilverStripe\Core\Validation\FieldValidation;
 
 use SilverStripe\Core\Validation\ValidationResult;
-use SilverStripe\Core\Validation\FieldValidation\NumericFieldValidator;
 
 /**
  * Validates that a value is a 32-bit signed integer
  */
-class IntFieldValidator extends NumericFieldValidator
+class IntFieldValidator extends NumericNonStringFieldValidator
 {
     /**
      * The minimum value for a signed 32-bit integer.

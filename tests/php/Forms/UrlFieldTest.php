@@ -84,10 +84,8 @@ class UrlFieldTest extends SapphireTest
     {
         $field = new UrlField('MyUrl');
         $field->setValue($url);
-        $validator = new RequiredFields();
-        $field->validate($validator);
         $expectedCount = $valid ? 0 : 1;
-        $this->assertEquals($expectedCount, count($validator->getErrors()));
+        $this->assertEquals($expectedCount, count($field->validate()->getMessages()));
     }
 
     public function testAllowedProtocols(): void

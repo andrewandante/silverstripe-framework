@@ -19,7 +19,12 @@ use SilverStripe\Core\Validation\FieldValidation\DecimalFieldValidator;
 class DBPercentage extends DBDecimal
 {
     private static array $field_validators = [
-        DecimalFieldValidator::class => ['getWholeSize', 'getDecimalSize', 'getMinValue', 'getMaxValue'],
+        DecimalFieldValidator::class => [
+            'wholeSize' => 'getWholeSize',
+            'decimalSize' => 'getDecimalSize',
+            'minValue' => 'getMinValue',
+            'maxValue' => 'getMaxValue',
+        ],
     ];
 
     /**

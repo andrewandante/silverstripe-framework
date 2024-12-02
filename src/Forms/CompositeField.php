@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forms;
 
+use SilverStripe\Core\Validation\FieldValidation\CompositeFieldValidator;
 use SilverStripe\Dev\Debug;
 
 /**
@@ -13,6 +14,9 @@ use SilverStripe\Dev\Debug;
  */
 class CompositeField extends FormField
 {
+    private static array $field_validators = [
+        CompositeFieldValidator::class,
+    ];
 
     /**
      * @var FieldList
@@ -63,7 +67,6 @@ class CompositeField extends FormField
             $children = new FieldList($children);
         }
         $this->setChildren($children);
-
         parent::__construct(null, false);
     }
 
@@ -115,12 +118,17 @@ class CompositeField extends FormField
         return $this->children;
     }
 
+    public function getValueForValidation(): mixed
+    {
+        return $this->getChildren()->toArray();
+    }
+
     /**
      * Returns the name (ID) for the element.
      * If the CompositeField doesn't have a name, but we still want the ID/name to be set.
      * This code generates the ID from the nested children.
      */
-    public function getName()
+    public function getName(): string
     {
         if ($this->name) {
             return $this->name;
@@ -265,8 +273,6 @@ class CompositeField extends FormField
         parent::setForm($form);
         return $this;
     }
-
-
 
     public function setDisabled($disabled)
     {
@@ -521,20 +527,5 @@ class CompositeField extends FormField
         }
         $result .= "</ul>";
         return $result;
-    }
-
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        $valid = true;
-        foreach ($this->children as $child) {
-            $valid = ($child && $child->validate($validator) && $valid);
-        }
-        return $this->extendValidationResult($valid, $validator);
     }
 }

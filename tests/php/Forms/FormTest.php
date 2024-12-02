@@ -559,7 +559,6 @@ class FormTest extends FunctionalTest
     public function testSessionValidationMessage()
     {
         $this->get('FormTest_Controller');
-
         $response = $this->post(
             'FormTest_Controller/Form',
             [
@@ -568,11 +567,10 @@ class FormTest extends FunctionalTest
                 // leaving out "Required" field
             ]
         );
-
         $this->assertPartialMatchBySelector(
             '#Form_Form_Email_Holder span.message',
             [
-                'Please enter an email address'
+                'Invalid email address'
             ],
             'Formfield validation shows note on field if invalid'
         );
@@ -583,11 +581,12 @@ class FormTest extends FunctionalTest
             ],
             'Required fields show a notification on field when left blank'
         );
-
-        $this->assertStringContainsString(
-            '&#039;&lt;a href=&quot;http://mysite.com&quot;&gt;link&lt;/a&gt;&#039; is not a number, only numbers can be accepted for this field',
-            $response->getBody(),
-            "Validation messages are safely XML encoded"
+        $this->assertPartialMatchBySelector(
+            '#Form_Form_Number_Holder span.message',
+            [
+                'Invalid number'
+            ],
+            $response->getBody()
         );
         $this->assertStringNotContainsString(
             '<a href="http://mysite.com">link</a>',
@@ -600,7 +599,7 @@ class FormTest extends FunctionalTest
     {
         $this->get('FormTest_Controller');
 
-        $this->post(
+        $response = $this->post(
             'FormTest_Controller/Form',
             [
                 'Email' => 'test@test.com',
@@ -830,7 +829,7 @@ class FormTest extends FunctionalTest
         $this->assertEquals('multipart/form-data', $form->getEncType());
 
         $form = $this->getStubForm();
-        $form->Fields()->push(new FileField(null));
+        $form->Fields()->push(new FileField('MyField'));
         $this->assertEquals('multipart/form-data', $form->getEncType());
 
         $form->setEncType(Form::ENC_TYPE_URLENCODED);

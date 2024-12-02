@@ -5,12 +5,18 @@ namespace SilverStripe\Forms;
 use SilverStripe\Model\List\SS_List;
 use SilverStripe\Model\List\Map;
 use ArrayAccess;
+use SilverStripe\Core\Validation\FieldValidation\OptionFieldValidator;
 
 /**
  * Represents a field that allows users to select one or more items from a list
  */
 abstract class SelectField extends FormField
 {
+    private static array $field_validators = [
+        OptionFieldValidator::class => [
+            'options' => 'getValidValues',
+        ],
+    ];
 
     /**
      * Associative or numeric array of all dropdown items,
@@ -122,6 +128,24 @@ abstract class SelectField extends FormField
     }
 
     /**
+     * Convert a submitted value, which should probalby always be a string, to the correct type
+     * Currently this will only convert string int to int
+     */
+    protected function castSubmittedValue(mixed $value): mixed
+    {
+        if (!is_string($value) || !is_numeric($value) || !ctype_digit($value)) {
+            return $value;
+        }
+        $sourceValues = $this->getSourceValues();
+        foreach ($sourceValues as $sourceValue) {
+            if ((string) $sourceValue === $value) {
+                return $sourceValue;
+            }
+        }
+        return $value;
+    }
+
+    /**
      * Gets all valid values for this field.
      *
      * Does not include "empty" value if specified
@@ -130,9 +154,9 @@ abstract class SelectField extends FormField
      */
     public function getValidValues()
     {
-        $valid = array_diff($this->getSourceValues() ?? [], $this->getDisabledItems());
+        $values = array_diff($this->getSourceValues() ?? [], $this->getDisabledItems());
         // Renumber indexes from 0
-        return array_values($valid ?? []);
+        return array_values($values);
     }
 
     /**
@@ -203,7 +227,10 @@ abstract class SelectField extends FormField
             return $values->column('ID');
         }
 
-        return [trim($values ?? '')];
+        if (is_string($values)) {
+            $values = trim($values);
+        }
+        return is_array($values) ? $values : [$values];
     }
 
     /**

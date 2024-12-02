@@ -102,8 +102,6 @@ abstract class DBField extends ModelData implements DBIndexable, FieldValidation
         'ProcessedRAW' => 'HTMLFragment',
     ];
 
-    private static array $field_validators = [];
-
     /**
      * Default value in the database.
      * Might be overridden on DataObject-level, but still useful for setting defaults on
@@ -195,17 +193,6 @@ abstract class DBField extends ModelData implements DBIndexable, FieldValidation
     public function getValue(): mixed
     {
         return $this->value;
-    }
-
-    /**
-     * Get the value of this field for field validation
-     *
-     * Intended to be overridden by subclasses when there is a need to provide
-     * a different value so that it is suitable for validation e.g. DBComposite
-     */
-    public function getValueForValidation(): mixed
-    {
-        return $this->getValue();
     }
 
     /**

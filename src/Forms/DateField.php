@@ -8,6 +8,10 @@ use InvalidArgumentException;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\Core\Validation\ValidationResult;
+use SilverStripe\Core\Validation\FieldValidation\DateFieldValidator;
+use SilverStripe\Forms\FieldValidatorConverter\FieldValidatorConverterInterface;
+use SilverStripe\Forms\FieldValidatorConverter\FieldValidatorConverterTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Form used for editing a date string
@@ -54,8 +58,17 @@ use SilverStripe\Core\Validation\ValidationResult;
  * @see https://unicode-org.github.io/icu/userguide/format_parse/datetime
  * @see http://api.jqueryui.com/datepicker/#utility-formatDate
  */
-class DateField extends TextField
+class DateField extends TextField implements FieldValidatorConverterInterface
 {
+    use FieldValidatorConverterTrait;
+
+    private static array $field_validators = [
+        DateFieldValidator::class => [
+            'minValue' => 'getMinDate',
+            'maxValue' => 'getMaxDate',
+            'converter' => 'getFieldValidatorConverter',
+        ],
+    ];
     protected $schemaDataType = FormField::SCHEMA_DATA_TYPE_DATE;
 
     /**
@@ -95,15 +108,6 @@ class DateField extends TextField
      * @var string ISO 860 date for max date
      */
     protected $maxDate = null;
-
-    /**
-     * Unparsed value, used exclusively for comparing with internal value
-     * to detect invalid values.
-     *
-     * @var mixed
-     * @deprecated 5.4.0 Use $value instead
-     */
-    protected $rawValue = null;
 
     /**
      * Use HTML5-based input fields (and force ISO 8601 date formats).
@@ -307,9 +311,6 @@ class DateField extends TextField
      */
     public function setSubmittedValue($value, $data = null)
     {
-        // Save raw value for later validation
-        $this->rawValue = $value;
-
         // Null case
         if (!$value) {
             $this->value = null;
@@ -332,23 +333,29 @@ class DateField extends TextField
      */
     public function setValue($value, $data = null)
     {
-        // Save raw value for later validation
-        $this->rawValue = $value;
-
-        // Null case
-        if (!$value) {
+        if (is_null($value)) {
             $this->value = null;
             return $this;
         }
 
         // Re-run through formatter to tidy up (e.g. remove time component)
-        $this->value = $this->tidyInternal($value);
+        $this->value = $this->tidyInternal($value, false);
         return $this;
     }
 
     public function Value()
     {
         return $this->internalToFrontend($this->value);
+    }
+
+    public function getValueForValidation(): mixed
+    {
+        // new DateField('MyDate') ... getValue() will return empty string
+        // return null so that validation is skipped
+        if ($this->getValue() === '') {
+            return null;
+        }
+        return $this->value;
     }
 
     public function performReadonlyTransformation()
@@ -360,83 +367,6 @@ class DateField extends TextField
             ->setReadonly(true);
 
         return $field;
-    }
-
-    /**
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        // Don't validate empty fields
-        if (empty($this->rawValue)) {
-            return $this->extendValidationResult(true, $validator);
-        }
-
-        // We submitted a value, but it couldn't be parsed
-        if (empty($this->value)) {
-            $validator->validationError(
-                $this->name,
-                _t(
-                    'SilverStripe\\Forms\\DateField.VALIDDATEFORMAT2',
-                    "Please enter a valid date format ({format})",
-                    ['format' => $this->getDateFormat()]
-                )
-            );
-            return $this->extendValidationResult(false, $validator);
-        }
-
-        // Check min date
-        $min = $this->getMinDate();
-        if ($min) {
-            $oops = strtotime($this->value ?? '') < strtotime($min ?? '');
-            if ($oops) {
-                $validator->validationError(
-                    $this->name,
-                    _t(
-                        'SilverStripe\\Forms\\DateField.VALIDDATEMINDATE',
-                        "Your date has to be newer or matching the minimum allowed date ({date})",
-                        [
-                            'date' => sprintf(
-                                '<time datetime="%s">%s</time>',
-                                $min,
-                                $this->internalToFrontend($min)
-                            )
-                        ]
-                    ),
-                    ValidationResult::TYPE_ERROR,
-                    ValidationResult::CAST_HTML
-                );
-                return $this->extendValidationResult(false, $validator);
-            }
-        }
-
-        // Check max date
-        $max = $this->getMaxDate();
-        if ($max) {
-            $oops = strtotime($this->value ?? '') > strtotime($max ?? '');
-            if ($oops) {
-                $validator->validationError(
-                    $this->name,
-                    _t(
-                        'SilverStripe\\Forms\\DateField.VALIDDATEMAXDATE',
-                        "Your date has to be older or matching the maximum allowed date ({date})",
-                        [
-                            'date' => sprintf(
-                                '<time datetime="%s">%s</time>',
-                                $max,
-                                $this->internalToFrontend($max)
-                            )
-                        ]
-                    ),
-                    ValidationResult::TYPE_ERROR,
-                    ValidationResult::CAST_HTML
-                );
-                return $this->extendValidationResult(false, $validator);
-            }
-        }
-
-        return $this->extendValidationResult(true, $validator);
     }
 
     /**
@@ -488,7 +418,7 @@ class DateField extends TextField
      */
     public function setMinDate($minDate)
     {
-        $this->minDate = $this->tidyInternal($minDate);
+        $this->minDate = $this->tidyInternal($minDate, true);
         return $this;
     }
 
@@ -506,7 +436,7 @@ class DateField extends TextField
      */
     public function setMaxDate($maxDate)
     {
-        $this->maxDate = $this->tidyInternal($maxDate);
+        $this->maxDate = $this->tidyInternal($maxDate, true);
         return $this;
     }
 
@@ -536,13 +466,12 @@ class DateField extends TextField
      * as defined by {@link $dateFormat}. With $html5=true, the frontend date will also be
      * in ISO 8601.
      *
-     * @param string $date
      * @return string The formatted date, or null if not a valid date
      */
-    protected function internalToFrontend($date)
+    public function internalToFrontend(mixed $value): ?string
     {
-        $date = $this->tidyInternal($date);
-        if (!$date) {
+        $date = $this->tidyInternal($value, true);
+        if (is_null($date)) {
             return null;
         }
         $fromFormatter = $this->getInternalFormatter();
@@ -558,12 +487,13 @@ class DateField extends TextField
      * Tidy up the internal date representation (ISO 8601),
      * and fall back to strtotime() if there's parsing errors.
      *
-     * @param string $date Date in ISO 8601 or approximate form
-     * @return string ISO 8601 date, or null if not valid
+     * @param mixed $date Date in ISO 8601 or approximate form
+     * @param bool $returnNullOnFailure return null if the date is not valid, or the original date
+     * @return null|string ISO 8601 date or null
      */
-    protected function tidyInternal($date)
+    protected function tidyInternal(mixed $date, bool $returnNullOnFailure): ?string
     {
-        if (!$date) {
+        if (is_null($date)) {
             return null;
         }
         // Re-run through formatter to tidy up (e.g. remove time component)
@@ -573,7 +503,7 @@ class DateField extends TextField
             // Fallback to strtotime
             $timestamp = strtotime($date ?? '', DBDatetime::now()->getTimestamp());
             if ($timestamp === false) {
-                return null;
+                return $returnNullOnFailure ? null : $date;
             }
         }
         return $formatter->format($timestamp);

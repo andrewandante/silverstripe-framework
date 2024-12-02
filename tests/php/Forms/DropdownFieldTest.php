@@ -541,26 +541,25 @@ class DropdownFieldTest extends SapphireTest
             "Five" => "Five"
             ]
         );
-        $validator = new RequiredFields();
-        new Form(null, 'Form', new FieldList($field), new FieldList(), $validator);
+        new Form(null, 'Form', new FieldList($field), new FieldList());
         $field->setValue("One");
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
         $field->setName("TestNew"); //try changing name of field
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
         //non-existent value should make the field invalid
         $field->setValue("Three");
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
         //empty string shouldn't validate
         $field->setValue('');
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
         //empty field should validate after being set
         $field->setEmptyString('Empty String');
         $field->setValue('');
-        $this->assertTrue($field->validate($validator));
+        $this->assertTrue($field->validate()->isValid());
         //disabled items shouldn't validate
         $field->setDisabledItems(['Five']);
         $field->setValue('Five');
-        $this->assertFalse($field->validate($validator));
+        $this->assertFalse($field->validate()->isValid());
     }
 
     /**
@@ -585,28 +584,20 @@ class DropdownFieldTest extends SapphireTest
     {
         // Empty source
         $field = new DropdownField("EmptySource", "", []);
-        $v = new RequiredFields();
-        $field->validate($v);
-        $this->assertTrue($v->getResult()->isValid());
+        $this->assertTrue($field->validate()->isValid());
 
         // Source with a setEmptyString
         $field = new DropdownField("EmptySource", "", []);
         $field->setEmptyString('(Select one)');
-        $v = new RequiredFields();
-        $field->validate($v);
-        $this->assertTrue($v->getResult()->isValid());
+        $this->assertTrue($field->validate()->isValid());
 
         // Source with an empty value
         $field = new DropdownField("SourceWithBlankVal", "", [ "" => "(Choose)" ]);
-        $v = new RequiredFields();
-        $field->validate($v);
-        $this->assertTrue($v->getResult()->isValid());
+        $this->assertTrue($field->validate()->isValid());
 
         // Source with all items disabled
         $field = new DropdownField("SourceWithBlankVal", "", [ "A" => "A", "B" => "B" ]);
         $field->setDisabledItems([ 'A', 'B' ]);
-        $v = new RequiredFields();
-        $field->validate($v);
-        $this->assertTrue($v->getResult()->isValid());
+        $this->assertTrue($field->validate()->isValid());
     }
 }

@@ -3,9 +3,12 @@
 namespace SilverStripe\Forms;
 
 use SilverStripe\Core\Convert;
+use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\ORM\DataObjectInterface;
 use SilverStripe\Model\List\Map;
 use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\Core\Validation\FieldValidation\OptionFieldValidator;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Read-only complement of {@link DropdownField}.
@@ -15,6 +18,10 @@ use SilverStripe\ORM\FieldType\DBField;
  */
 class SingleLookupField extends SingleSelectField
 {
+    private static $field_validators = [
+        OptionFieldValidator::class => null,
+    ];
+
     /**
      * @var bool
      */
@@ -34,17 +41,6 @@ class SingleLookupField extends SingleSelectField
         }
 
         return null;
-    }
-
-    /**
-     * Ignore validation as the field is readonly
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        return $this->extendValidationResult(true, $validator);
     }
 
     /**

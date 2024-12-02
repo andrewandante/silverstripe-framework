@@ -4,7 +4,6 @@ namespace SilverStripe\Core\Validation\FieldValidation;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Validation\ValidationResult;
-use SilverStripe\Core\Validation\FieldValidation\FieldValidator;
 use SilverStripe\Core\Validation\FieldValidation\FieldValidationInterface;
 
 /**

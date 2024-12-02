@@ -20,7 +20,10 @@ class DBYear extends DBField
     public const MAX_YEAR = 2155;
 
     private static $field_validators = [
-        YearFieldValidator::class => ['getMinYear', 'getMaxYear'],
+        YearFieldValidator::class => [
+            'minValue' => 'getMinYear',
+            'maxValue' => 'getMaxYear'
+        ],
     ];
 
     public function requireField(): void
