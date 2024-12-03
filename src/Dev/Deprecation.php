@@ -169,10 +169,14 @@ class Deprecation
     {
         $newLevel = $level;
         // handle closures inside withSuppressedNotice()
-        if (Deprecation::$insideNoticeSuppression
-            && substr($backtrace[$newLevel]['function'], -strlen('{closure}')) === '{closure}'
-        ) {
-            $newLevel = $newLevel + 2;
+        if (Deprecation::$insideNoticeSuppression) {
+            $func = $backtrace[$newLevel]['function'];
+            // different versions of php have different formats for closures
+            // php <=8.3 example "SilverStripe\Dev\{closure}"
+            // php >=8.4 example "{closure:SilverStripe\Dev\Deprecation::noticeWithNoReplacment():464}"
+            if (str_ends_with($func, '{closure}') || str_starts_with($func, '{closure:')) {
+                $newLevel = $newLevel + 2;
+            }
         }
         // handle call_user_func
         if ($level === 4 && strpos($backtrace[2]['function'] ?? '', 'call_user_func') !== false) {
