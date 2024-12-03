@@ -57,8 +57,8 @@ class CsvBulkLoaderTest extends SapphireTest
         $filepath = $this->csvPath . 'PlayersWithHeader.csv';
         $file = fopen($filepath ?? '', 'r');
         $compareCount = $this->getLineCount($file);
-        fgetcsv($file); // pop header row
-        $compareRow = fgetcsv($file);
+        fgetcsv($file, escape: "\\"); // pop header row
+        $compareRow = fgetcsv($file, escape: "\\");
         $results = $loader->load($filepath);
 
         // Test that right amount of columns was imported
@@ -141,7 +141,7 @@ class CsvBulkLoaderTest extends SapphireTest
         $filepath = $this->csvPath . 'Players.csv';
         $file = fopen($filepath ?? '', 'r');
         $compareCount = $this->getLineCount($file);
-        $compareRow = fgetcsv($file);
+        $compareRow = fgetcsv($file, escape: "\\");
         $loader->columnMap = [
             'FirstName',
             'Biography',
@@ -188,8 +188,8 @@ class CsvBulkLoaderTest extends SapphireTest
         $filepath = $this->csvPath . 'PlayersWithCustomHeaderAndRelation.csv';
         $file = fopen($filepath ?? '', 'r');
         $compareCount = $this->getLineCount($file);
-        fgetcsv($file); // pop header row
-        $compareRow = fgetcsv($file);
+        fgetcsv($file, escape: "\\"); // pop header row
+        $compareRow = fgetcsv($file, escape: "\\");
         $loader->columnMap = [
             'first name' => 'FirstName',
             'bio' => 'Biography',
