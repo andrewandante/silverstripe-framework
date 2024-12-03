@@ -141,10 +141,10 @@ abstract class BaseKernel implements Kernel
     {
         if ($this->getEnvironment() === BaseKernel::LIVE) {
             // limited to fatal errors and warnings in live mode
-            error_reporting(E_ALL & ~(E_DEPRECATED | E_STRICT | E_NOTICE));
+            error_reporting(E_ALL & ~(E_DEPRECATED | E_NOTICE));
         } else {
             // Report all errors in dev / test mode
-            error_reporting(E_ALL | E_STRICT);
+            error_reporting(E_ALL);
         }
 
         /**

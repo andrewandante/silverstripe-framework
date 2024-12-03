@@ -161,7 +161,7 @@ class BacktraceTest extends SapphireTest
     #[DataProvider('matchesFilterableClassProvider')]
     public function testMatchesFilterableClass(string $className, string $filterableClass, bool $expected, string $message): void
     {
-        $reflectionMethod = new ReflectionMethod(Backtrace::class . '::matchesFilterableClass');
+        $reflectionMethod = new ReflectionMethod(Backtrace::class, 'matchesFilterableClass');
         $reflectionMethod->setAccessible(true);
         $this->assertSame($expected, $reflectionMethod->invoke(null, $className, $filterableClass), $message);
     }

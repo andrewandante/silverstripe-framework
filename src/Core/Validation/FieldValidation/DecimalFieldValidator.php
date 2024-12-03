@@ -39,8 +39,8 @@ class DecimalFieldValidator extends NumericNonStringFieldValidator
         mixed $value,
         int $wholeSize,
         int $decimalSize,
-        int $minValue = null,
-        int $maxValue = null,
+        ?int $minValue = null,
+        ?int $maxValue = null,
     ) {
         parent::__construct($name, $value, $minValue, $maxValue);
         $this->wholeSize = $wholeSize;

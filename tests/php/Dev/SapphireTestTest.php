@@ -9,7 +9,6 @@ use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
-use SilverStripe\Dev\Exceptions\ExpectedErrorException;
 use SilverStripe\Dev\Exceptions\ExpectedNoticeException;
 use SilverStripe\Dev\Exceptions\ExpectedWarningException;
 
@@ -271,11 +270,8 @@ class SapphireTestTest extends SapphireTest
     public static function provideEnableErrorHandler(): array
     {
         // Only E_USER_* errors can be triggered, so that's all that's being tested
+        // As of PHP 8.4, E_USER_ERROR can no longer be triggered without a PHP deprecation notice
         return [
-            'error' => [
-                'errno' => E_USER_ERROR,
-                'expectedClass' => ExpectedErrorException::class,
-            ],
             'notice' => [
                 'errno' => E_USER_NOTICE,
                 'expectedClass' => ExpectedNoticeException::class,
