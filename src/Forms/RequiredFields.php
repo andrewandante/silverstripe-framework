@@ -14,6 +14,11 @@ use SilverStripe\Core\ArrayLib;
  */
 class RequiredFields extends Validator
 {
+    /**
+     * Whether to globally allow whitespace only as a valid value for a required field
+     * Can be overridden on a per-instance basis
+     */
+    private static bool $allow_whitespace_only = true;
 
     /**
      * List of required fields
@@ -21,6 +26,12 @@ class RequiredFields extends Validator
      * @var array
      */
     protected $required;
+
+    /**
+     * Whether to allow whitespace only as a valid value for a required field for this instance
+     * By default, this is set to null which will revert to the global default
+     */
+    private ?bool $allowWhitespaceOnly = null;
 
     /**
      * Pass each field to be validated as a separate argument to the constructor
@@ -39,6 +50,22 @@ class RequiredFields extends Validator
         }
 
         parent::__construct();
+    }
+
+    /**
+     * Get whether to allow whitespace only as a valid value for a required field
+     */
+    public function getAllowWhitespaceOnly(): ?bool
+    {
+        return $this->allowWhitespaceOnly ?? static::config()->get('allow_whitespace_only');
+    }
+
+    /**
+     * Set whether to allow whitespace only as a valid value for a required field
+     */
+    public function setAllowWhitespaceOnly(?bool $allow)
+    {
+        $this->allowWhitespaceOnly = $allow;
     }
 
     /**
@@ -124,6 +151,10 @@ class RequiredFields extends Validator
                 }
             } else {
                 $stringValue = (string) $value;
+                if (!$this->getAllowWhitespaceOnly()) {
+                    $stringValue = preg_replace('/^\s+/u', '', $stringValue);
+                    $stringValue = preg_replace('/\s+$/u', '', $stringValue);
+                }
                 if (is_a($formField, HasOneRelationFieldInterface::class)) {
                     // test for blank string as well as '0' because older versions of silverstripe/admin FormBuilder
                     // forms created using redux-form would have a value of null for unsaved records
