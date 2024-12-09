@@ -4,7 +4,7 @@ namespace SilverStripe\Forms\Tests;
 
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\NumericField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\i18n\i18n;
 use PHPUnit\Framework\Attributes\DataProvider;
 

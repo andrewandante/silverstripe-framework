@@ -4,7 +4,7 @@ namespace SilverStripe\Forms\Tests;
 
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\UrlField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 class UrlFieldTest extends SapphireTest

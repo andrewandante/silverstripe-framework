@@ -15,7 +15,7 @@ use SilverStripe\Control\Controller;
 use SilverStripe\Forms\CheckboxSetField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Model\ArrayData;
 
 class CheckboxSetFieldTest extends SapphireTest
@@ -355,7 +355,7 @@ class CheckboxSetFieldTest extends SapphireTest
             "form",
             new FieldList($field),
             new FieldList(),
-            new RequiredFields(["RequiredField"])
+            new RequiredFieldsValidator(["RequiredField"])
         );
         $this->assertTrue($field->Required());
 

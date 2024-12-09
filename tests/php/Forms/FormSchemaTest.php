@@ -11,7 +11,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\TextField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\PopoverField;
 use SilverStripe\Forms\FormField;
@@ -141,7 +141,7 @@ class FormSchemaTest extends SapphireTest
     {
         $fields = new FieldList(new TextField('Title'));
         $actions = new FieldList();
-        $validator = new RequiredFields('Title');
+        $validator = new RequiredFieldsValidator('Title');
         $form = new Form(null, 'TestForm', $fields, $actions, $validator);
         $form->clearMessage();
         $form->loadDataFrom(
@@ -240,7 +240,7 @@ class FormSchemaTest extends SapphireTest
                 new CurrencyField("Money")
             ),
             new FieldList(),
-            new RequiredFields('Name')
+            new RequiredFieldsValidator('Name')
         );
         $formSchema = new FormSchema();
         $schema = $formSchema->getSchema($form);

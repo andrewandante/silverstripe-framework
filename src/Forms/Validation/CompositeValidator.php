@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\Forms;
+namespace SilverStripe\Forms\Validation;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Validation\ValidationResult;
@@ -20,7 +20,7 @@ use SilverStripe\Dev\Deprecation;
  * {
  *   $compositeValidator = parent::getCMSCompositeValidator();
  *
- *   $compositeValidator->addValidator(RequiredFields::create(['MyRequiredField']));
+ *   $compositeValidator->addValidator(RequiredFieldsValidator::create(['MyRequiredField']));
  *
  *   return $compositeValidator
  * }
@@ -29,9 +29,8 @@ use SilverStripe\Dev\Deprecation;
  *
  * protected function updateCMSCompositeValidator(CompositeValidator $compositeValidator): void
  * {
- *   $compositeValidator->addValidator(RequiredFields::create(['AdditionalContent']));
+ *   $compositeValidator->addValidator(RequiredFieldsValidator::create(['AdditionalContent']));
  * }
- * @deprecated 5.4.0 Will be renamed to SilverStripe\Forms\Validation\CompositeValidator
  */
 class CompositeValidator extends Validator
 {
@@ -47,11 +46,6 @@ class CompositeValidator extends Validator
      */
     public function __construct(array $validators = [])
     {
-        Deprecation::noticeWithNoReplacment(
-            '5.4.0',
-            'Will be renamed to SilverStripe\\Forms\\Validation\\CompositeValidator',
-            Deprecation::SCOPE_CLASS
-        );
         $this->validators = array_values($validators ?? []);
         parent::__construct();
     }
@@ -106,7 +100,7 @@ class CompositeValidator extends Validator
     }
 
     /**
-     * Note: The existing implementations for the php() method (@see RequiredFields) does not check whether the
+     * Note: The existing implementations for the php() method (@see RequiredFieldsValidator) does not check whether the
      * Validator is enabled or not, and it also does not reset the validation result - so, neither does this.
      *
      * @param array $data
@@ -156,7 +150,7 @@ class CompositeValidator extends Validator
     }
 
     /**
-     * Return all Validators that match a certain class name. EG: RequiredFields::class
+     * Return all Validators that match a certain class name. EG: RequiredFieldsValidator::class
      *
      * The keys for the return array match the keys in the unfiltered array. You cannot assume the keys will be
      * sequential or that the first key will be ZERO.
@@ -181,7 +175,7 @@ class CompositeValidator extends Validator
     }
 
     /**
-     * Remove all Validators that match a certain class name. EG: RequiredFields::class
+     * Remove all Validators that match a certain class name. EG: RequiredFieldsValidator::class
      *
      * @param string $className
      * @return CompositeValidator

@@ -22,7 +22,7 @@ use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
 use SilverStripe\Forms\GridField\GridState;
 use SilverStripe\Forms\GridField\GridState_Component;
 use SilverStripe\Forms\GridField\GridState_Data;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\Tests\GridField\GridFieldTest\Cheerleader;
 use SilverStripe\Forms\Tests\GridField\GridFieldTest\Component;
 use SilverStripe\Forms\Tests\GridField\GridFieldTest\Component2;
@@ -551,7 +551,7 @@ class GridFieldTest extends SapphireTest
         $gridField->setMessage(null);
 
         // A form that passes validation should not display a validation error in the FieldHolder output.
-        $form->setValidator(new RequiredFields());
+        $form->setValidator(new RequiredFieldsValidator());
         $form->validationResult();
         $gridfieldOutput = $gridField->FieldHolder();
         $this->assertStringNotContainsString('<p class="message ' . ValidationResult::TYPE_ERROR . '">', $gridfieldOutput);

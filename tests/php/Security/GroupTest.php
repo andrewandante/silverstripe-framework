@@ -5,7 +5,7 @@ namespace SilverStripe\Security\Tests;
 use InvalidArgumentException;
 use SilverStripe\Control\Controller;
 use SilverStripe\Dev\FunctionalTest;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Group;
@@ -287,10 +287,10 @@ class GroupTest extends FunctionalTest
 
         $newGroup = new Group();
 
-        $validators = $newGroup->getCMSCompositeValidator()->getValidatorsByType(RequiredFields::class);
+        $validators = $newGroup->getCMSCompositeValidator()->getValidatorsByType(RequiredFieldsValidator::class);
         $this->assertCount(1, $validators);
         $validator = array_shift($validators);
-        $this->assertInstanceOf(RequiredFields::class, $validator);
+        $this->assertInstanceOf(RequiredFieldsValidator::class, $validator);
         $this->assertTrue(in_array('Title', $validator->getRequired() ?? []));
 
         $newGroup->Title = $group1->Title;

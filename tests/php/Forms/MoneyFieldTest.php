@@ -5,7 +5,7 @@ namespace SilverStripe\Forms\Tests;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\HiddenField;
 use SilverStripe\Forms\NumericField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\Tests\MoneyFieldTest\CustomSetter_Object;
 use SilverStripe\Forms\Tests\MoneyFieldTest\TestObject;
 use SilverStripe\Forms\TextField;

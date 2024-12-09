@@ -1,19 +1,16 @@
 <?php
 
-namespace SilverStripe\Forms;
+namespace SilverStripe\Forms\Validation;
 
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Validation\ValidationResult;
-use SilverStripe\Dev\Deprecation;
 
 /**
  * This validation class handles all form and custom form validation through the use of Required
  * fields. It relies on javascript for client-side validation, and marking fields after server-side
  * validation. It acts as a visitor to individual form fields.
- *
- * @deprecated 5.4.0 Will be renamed to SilverStripe\Forms\Validation\Validator
  */
 abstract class Validator
 {
@@ -23,11 +20,6 @@ abstract class Validator
 
     public function __construct()
     {
-        Deprecation::noticeWithNoReplacment(
-            '5.4.0',
-            'Will be renamed to SilverStripe\\Forms\\Validation\\Validator',
-            Deprecation::SCOPE_CLASS
-        );
         $this->resetResult();
     }
 
@@ -179,7 +171,7 @@ abstract class Validator
     /**
      * When Validators are set on the form, it can affect whether or not the form cannot be cached.
      *
-     * @see RequiredFields for an example of when you might be able to cache your form.
+     * @see RequiredFieldsValidator for an example of when you might be able to cache your form.
      *
      * @return bool
      */

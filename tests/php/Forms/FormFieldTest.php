@@ -20,7 +20,7 @@ use SilverStripe\Forms\GridField\GridState;
 use SilverStripe\Forms\NullableField;
 use SilverStripe\Forms\PopoverField;
 use SilverStripe\Forms\PrintableTransformation_TabSet;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\SelectionGroup;
 use SilverStripe\Forms\SelectionGroup_Item;
 use SilverStripe\Forms\Tab;
@@ -533,7 +533,7 @@ class FormFieldTest extends SapphireTest
     public function testGetSchemaStateWithFormValidation()
     {
         $field = new FormField('MyField', 'My Field');
-        $validator = new RequiredFields('MyField');
+        $validator = new RequiredFieldsValidator('MyField');
         $form = new Form(null, 'TestForm', new FieldList($field), new FieldList(), $validator);
         $form->validationResult();
         $schema = $field->getSchemaState();

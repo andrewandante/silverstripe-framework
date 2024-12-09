@@ -7,7 +7,7 @@ use SilverStripe\Model\List\ArrayList;
 use SilverStripe\Dev\CSSContentParser;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\DropdownField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\FormTemplateHelper;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
@@ -574,7 +574,7 @@ class DropdownFieldTest extends SapphireTest
             "form",
             new FieldList($field),
             new FieldList(),
-            new RequiredFields(["RequiredField"])
+            new RequiredFieldsValidator(["RequiredField"])
         );
 
         $this->assertTrue($field->getHasEmptyDefault());

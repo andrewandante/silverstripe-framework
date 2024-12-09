@@ -9,7 +9,7 @@ use SilverStripe\ORM\DataObject;
 use SilverStripe\Dev\CSSContentParser;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\ListboxField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Model\ArrayData;
 use PHPUnit\Framework\Attributes\DataProvider;
 

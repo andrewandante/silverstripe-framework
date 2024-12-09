@@ -3,7 +3,7 @@
 namespace SilverStripe\Security;
 
 use SilverStripe\Forms\GridField\GridFieldDetailForm_ItemRequest;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 
 /**
  * Member Validator
@@ -22,7 +22,7 @@ use SilverStripe\Forms\RequiredFields;
  *     - Surname
  * </code>
  */
-class Member_Validator extends RequiredFields
+class Member_Validator extends RequiredFieldsValidator
 {
     /**
      * Fields that are required by this validator

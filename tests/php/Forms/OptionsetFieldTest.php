@@ -7,7 +7,7 @@ use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\Dev\CSSContentParser;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\OptionsetField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 
@@ -46,7 +46,7 @@ class OptionsetFieldTest extends SapphireTest
             "Five" => "Five"
             ]
         );
-        $validator = new RequiredFields('Test');
+        $validator = new RequiredFieldsValidator('Test');
         $form = new Form(null, 'Form', new FieldList($field), new FieldList(), $validator);
 
         $field->setValue("One");
@@ -60,14 +60,14 @@ class OptionsetFieldTest extends SapphireTest
         $field->setValue('');
         $this->assertFalse($field->validate()->isValid());
 
-        // ... and should not pass "RequiredFields" validation
+        // ... and should not pass "RequiredFieldsValidator" validation
         $this->assertFalse($form->validationResult()->isValid());
 
         // null value should pass field-level validation...
         $field->setValue(null);
         $this->assertTrue($field->validate()->isValid());
 
-        // ... but should not pass "RequiredFields" validation
+        // ... but should not pass "RequiredFieldsValidator" validation
         $this->assertFalse($form->validationResult()->isValid());
 
         // disabled items shouldn't validate
@@ -118,7 +118,7 @@ class OptionsetFieldTest extends SapphireTest
             "form",
             new FieldList($field),
             new FieldList(),
-            new RequiredFields(["RequiredField"])
+            new RequiredFieldsValidator(["RequiredField"])
         );
         $this->assertTrue($field->Required());
 
