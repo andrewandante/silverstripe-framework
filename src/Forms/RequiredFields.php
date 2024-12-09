@@ -3,6 +3,7 @@
 namespace SilverStripe\Forms;
 
 use SilverStripe\Core\ArrayLib;
+use SilverStripe\Dev\Deprecation;
 
 /**
  * Required Fields allows you to set which fields need to be present before
@@ -11,6 +12,8 @@ use SilverStripe\Core\ArrayLib;
  *
  * Validation is performed on a field by field basis through
  * {@link FormField::validate}.
+ *
+ * @deprecated 5.4.0 Will be renamed to SilverStripe\Forms\Validation\RequiredFieldsValidator
  */
 class RequiredFields extends Validator
 {
@@ -39,6 +42,11 @@ class RequiredFields extends Validator
      */
     public function __construct()
     {
+        Deprecation::noticeWithNoReplacment(
+            '5.4.0',
+            'Will be renamed to SilverStripe\\Forms\\Validation\\RequiredFieldsValidator',
+            Deprecation::SCOPE_CLASS
+        );
         $required = func_get_args();
         if (isset($required[0]) && is_array($required[0])) {
             $required = $required[0];
