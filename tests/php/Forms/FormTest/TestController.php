@@ -11,7 +11,7 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\NumericField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Core\Validation\ValidationException;
 use SilverStripe\Core\Validation\ValidationResult;
@@ -66,7 +66,7 @@ class TestController extends Controller implements TestOnly
                 FormAction::create('doSubmitActionExempt')
                     ->setValidationExempt(true)
             ),
-            new RequiredFields(
+            new RequiredFieldsValidator(
                 'Email',
                 'SomeRequiredField'
             )

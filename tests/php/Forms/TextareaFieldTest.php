@@ -4,7 +4,7 @@ namespace SilverStripe\Forms\Tests;
 
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\TextareaField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 class TextareaFieldTest extends SapphireTest

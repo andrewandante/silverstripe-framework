@@ -15,7 +15,7 @@ use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FieldsValidator;
-use SilverStripe\Forms\Validator;
+use SilverStripe\Forms\Validation\Validator;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Model\ModelData;

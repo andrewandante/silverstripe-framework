@@ -3,6 +3,7 @@
 namespace SilverStripe\Forms;
 
 use SilverStripe\Dev\Deprecation;
+use SilverStripe\Forms\Validation\Validator;
 
 /**
  * Validates the internal state of all fields in the form.

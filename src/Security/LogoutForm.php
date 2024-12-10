@@ -9,7 +9,7 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\HiddenField;
-use SilverStripe\Forms\Validator;
+use SilverStripe\Forms\Validation\Validator;
 
 /**
  * Log out form to display to users who arrive at 'Security/logout' without a

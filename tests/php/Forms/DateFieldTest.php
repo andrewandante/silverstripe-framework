@@ -7,7 +7,7 @@ use LogicException;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\DateField;
 use SilverStripe\Forms\DateField_Disabled;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBDatetime;

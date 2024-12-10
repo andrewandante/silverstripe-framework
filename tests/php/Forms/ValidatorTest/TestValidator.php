@@ -4,7 +4,7 @@ namespace SilverStripe\Forms\Tests\ValidatorTest;
 
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\Forms\Form;
-use SilverStripe\Forms\Validator;
+use SilverStripe\Forms\Validation\Validator;
 
 class TestValidator extends Validator implements TestOnly
 {

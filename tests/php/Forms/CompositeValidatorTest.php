@@ -8,10 +8,10 @@ use SilverStripe\Control\Controller;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\Tests\ValidatorTest\TestValidator;
 use SilverStripe\Forms\TextField;
-use SilverStripe\Forms\CompositeValidator;
+use SilverStripe\Forms\Validation\CompositeValidator;
 
 /**
  * @package framework
@@ -40,8 +40,8 @@ class CompositeValidatorTest extends SapphireTest
     public function testAddValidator(): void
     {
         $compositeValidator = new CompositeValidator();
-        $compositeValidator->addValidator(new RequiredFields());
-        $compositeValidator->addValidator(new RequiredFields());
+        $compositeValidator->addValidator(new RequiredFieldsValidator());
+        $compositeValidator->addValidator(new RequiredFieldsValidator());
 
         $this->assertCount(2, $compositeValidator->getValidators());
     }
@@ -76,38 +76,38 @@ class CompositeValidatorTest extends SapphireTest
     public function testGetValidatorsByType(): void
     {
         $compositeValidator = new CompositeValidator();
-        $compositeValidator->addValidator(new RequiredFields());
+        $compositeValidator->addValidator(new RequiredFieldsValidator());
         $compositeValidator->addValidator(new TestValidator());
-        $compositeValidator->addValidator(new RequiredFields());
+        $compositeValidator->addValidator(new RequiredFieldsValidator());
         $compositeValidator->addValidator(new TestValidator());
 
         $this->assertCount(4, $compositeValidator->getValidators());
-        $this->assertCount(2, $compositeValidator->getValidatorsByType(RequiredFields::class));
+        $this->assertCount(2, $compositeValidator->getValidatorsByType(RequiredFieldsValidator::class));
     }
 
     public function testRemoveValidatorsByType(): void
     {
         $compositeValidator = new CompositeValidator();
-        $compositeValidator->addValidator(new RequiredFields());
+        $compositeValidator->addValidator(new RequiredFieldsValidator());
         $compositeValidator->addValidator(new TestValidator());
-        $compositeValidator->addValidator(new RequiredFields());
+        $compositeValidator->addValidator(new RequiredFieldsValidator());
         $compositeValidator->addValidator(new TestValidator());
 
         $this->assertCount(4, $compositeValidator->getValidators());
 
-        $compositeValidator->removeValidatorsByType(RequiredFields::class);
+        $compositeValidator->removeValidatorsByType(RequiredFieldsValidator::class);
         $this->assertCount(2, $compositeValidator->getValidators());
     }
 
     public function testCanBeCached(): void
     {
         $compositeValidator = new CompositeValidator();
-        $compositeValidator->addValidator(new RequiredFields());
+        $compositeValidator->addValidator(new RequiredFieldsValidator());
 
         $this->assertTrue($compositeValidator->canBeCached());
 
         $compositeValidator = new CompositeValidator();
-        $compositeValidator->addValidator(new RequiredFields(['Foor']));
+        $compositeValidator->addValidator(new RequiredFieldsValidator(['Foor']));
 
         $this->assertFalse($compositeValidator->canBeCached());
     }
@@ -121,12 +121,12 @@ class CompositeValidatorTest extends SapphireTest
             'Content',
         ];
 
-        $requiredFieldsFirst = new RequiredFields(
+        $requiredFieldsFirst = new RequiredFieldsValidator(
             [
                 $fieldNames[0],
             ]
         );
-        $requiredFieldsSecond = new RequiredFields(
+        $requiredFieldsSecond = new RequiredFieldsValidator(
             [
                 $fieldNames[1],
             ]
@@ -147,8 +147,8 @@ class CompositeValidatorTest extends SapphireTest
     {
         $compositeValidator = new CompositeValidator();
         // Add two separate validators, each with one required field
-        $compositeValidator->addValidator(new RequiredFields(['Foo']));
-        $compositeValidator->addValidator(new RequiredFields(['Bar']));
+        $compositeValidator->addValidator(new RequiredFieldsValidator(['Foo']));
+        $compositeValidator->addValidator(new RequiredFieldsValidator(['Bar']));
 
         // Setup a form with the fields/data we're testing (a form is a dependency for validation right now)
         // We'll add three empty fields, but only two of them should be required

@@ -10,7 +10,7 @@ use SilverStripe\Control\Controller;
 use SilverStripe\Forms\FileField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 
 class FileFieldTest extends FunctionalTest
 {
@@ -126,7 +126,7 @@ class FileFieldTest extends FunctionalTest
                 $fileField = new FileField('cv', 'Upload your CV')
             ),
             new FieldList(),
-            new RequiredFields('cv')
+            new RequiredFieldsValidator('cv')
         );
         // All fields are filled but for some reason an error occurred when uploading the file => fails
         $fileFieldValue = [

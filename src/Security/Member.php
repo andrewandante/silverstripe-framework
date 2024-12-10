@@ -15,7 +15,7 @@ use SilverStripe\Core\Convert;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\TestMailer;
 use SilverStripe\Forms\CheckboxField;
-use SilverStripe\Forms\CompositeValidator;
+use SilverStripe\Forms\Validation\CompositeValidator;
 use SilverStripe\Forms\ConfirmedPasswordField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
@@ -682,7 +682,7 @@ class Member extends DataObject
 
 
     /**
-     * Returns the {@link RequiredFields} instance for the Member object. This
+     * Returns the {@link RequiredFieldsValidator} instance for the Member object. This
      * Validator is used when saving a {@link CMSProfileController} or added to
      * any form responsible for saving a users data.
      *

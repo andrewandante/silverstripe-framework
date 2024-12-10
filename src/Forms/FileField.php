@@ -33,7 +33,7 @@ use SilverStripe\Core\Validation\ValidationResult;
  *      $actions = new FieldList(
  *          new FormAction('doUpload', 'Upload file')
  *      );
- *      $validator = new RequiredFields(['MyName', 'MyFile']);
+ *      $validator = new RequiredFieldsValidator(['MyName', 'MyFile']);
  *
  *      return new Form($this, 'Form', $fields, $actions, $validator);
  *  }

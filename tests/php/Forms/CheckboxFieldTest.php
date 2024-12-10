@@ -9,7 +9,7 @@ use SilverStripe\Forms\Tests\CheckboxFieldtest\Article;
 use SilverStripe\ORM\DB;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\CheckboxField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 
 class CheckboxFieldTest extends SapphireTest
 {
@@ -200,7 +200,7 @@ class CheckboxFieldTest extends SapphireTest
             "form",
             new FieldList($field),
             new FieldList(),
-            new RequiredFields(["RequiredField"])
+            new RequiredFieldsValidator(["RequiredField"])
         );
         $this->assertTrue($field->Required());
 

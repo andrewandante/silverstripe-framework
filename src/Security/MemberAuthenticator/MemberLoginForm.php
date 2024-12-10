@@ -10,7 +10,7 @@ use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\HiddenField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\PasswordField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Security\LoginForm as BaseLoginForm;
@@ -111,7 +111,7 @@ class MemberLoginForm extends BaseLoginForm
         if (isset($logoutAction)) {
             $this->setFormAction($logoutAction);
         }
-        $this->setValidator(RequiredFields::create(static::config()->get('required_fields')));
+        $this->setValidator(RequiredFieldsValidator::create(static::config()->get('required_fields')));
     }
 
     /**

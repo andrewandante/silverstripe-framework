@@ -20,6 +20,8 @@ use SilverStripe\Security\SecurityToken;
 use SilverStripe\View\AttributesHTML;
 use SilverStripe\View\SSViewer;
 use SilverStripe\Model\ModelData;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
+use SilverStripe\Forms\Validation\Validator;
 
 /**
  * Base class for all forms.
@@ -297,7 +299,7 @@ class Form extends ModelData implements HasRequestHandler
         $this->setName($name);
 
         // Form validation
-        $this->validator = ($validator) ? $validator : new RequiredFields();
+        $this->validator = ($validator) ? $validator : new RequiredFieldsValidator();
         $this->validator->setForm($this);
 
         // Form error controls

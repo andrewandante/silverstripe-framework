@@ -1,9 +1,11 @@
 <?php
 
-namespace SilverStripe\Forms;
+namespace SilverStripe\Forms\Validation;
 
 use SilverStripe\Core\ArrayLib;
-use SilverStripe\Dev\Deprecation;
+use SilverStripe\Forms\HasOneRelationFieldInterface;
+use SilverStripe\Forms\FileField;
+use SilverStripe\Forms\FormField;
 
 /**
  * Required Fields allows you to set which fields need to be present before
@@ -12,10 +14,8 @@ use SilverStripe\Dev\Deprecation;
  *
  * Validation is performed on a field by field basis through
  * {@link FormField::validate}.
- *
- * @deprecated 5.4.0 Will be renamed to SilverStripe\Forms\Validation\RequiredFieldsValidator
  */
-class RequiredFields extends Validator
+class RequiredFieldsValidator extends Validator
 {
     /**
      * Whether to globally allow whitespace only as a valid value for a required field
@@ -42,11 +42,6 @@ class RequiredFields extends Validator
      */
     public function __construct()
     {
-        Deprecation::noticeWithNoReplacment(
-            '5.4.0',
-            'Will be renamed to SilverStripe\\Forms\\Validation\\RequiredFieldsValidator',
-            Deprecation::SCOPE_CLASS
-        );
         $required = func_get_args();
         if (isset($required[0]) && is_array($required[0])) {
             $required = $required[0];
@@ -232,7 +227,7 @@ class RequiredFields extends Validator
     /**
      * Add {@link RequiredField} objects together
      *
-     * @param RequiredFields $requiredFields
+     * @param RequiredFieldsValidator $requiredFields
      * @return $this
      */
     public function appendRequiredFields($requiredFields)
