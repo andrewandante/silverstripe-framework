@@ -4,6 +4,7 @@ namespace SilverStripe\View\Tests\Embed;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\MessageInterface;
 
 class MockResponse implements ResponseInterface
 {
@@ -18,78 +19,78 @@ class MockResponse implements ResponseInterface
         $this->secondResponse = $secondResponse;
     }
 
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return 200;
     }
 
-    public function getBody()
+    public function getBody(): StreamInterface
     {
         // first request is to the video HTML to get to find the oembed link
         // second request is to the oembed endpoint to fetch JSON
         if ($this->unitTest->getFirstRequest()) {
-            return $this->firstResponse;
+            return MockUtil::createStreamInterface($this->firstResponse);
         } else {
-            return $this->secondResponse;
+            return MockUtil::createStreamInterface($this->secondResponse);
         }
     }
 
-    public function getReasonPhrase()
+    public function getReasonPhrase(): string
     {
         return '';
     }
 
-    public function getProtocolVersion()
+    public function getProtocolVersion(): string
     {
         return '';
     }
 
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return [];
     }
 
-    public function getHeader($name)
+    public function getHeader($name): array
+    {
+        return [];
+    }
+
+    public function getHeaderLine($name): string
     {
         return '';
     }
 
-    public function getHeaderLine($name)
-    {
-        return '';
-    }
-
-    public function hasHeader($name)
+    public function hasHeader($name): bool
     {
         return false;
     }
 
-    public function withHeader($name, $value)
+    public function withHeader($name, $value): MessageInterface
     {
         return $this;
     }
 
-    public function withAddedHeader($name, $value)
+    public function withAddedHeader($name, $value): MessageInterface
     {
         return $this;
     }
 
-    public function withBody(StreamInterface $body)
+    public function withBody(StreamInterface $body): MessageInterface
     {
         return $this;
     }
 
-    public function withoutHeader($name)
+    public function withoutHeader($name): MessageInterface
     {
         return $this;
     }
 
-    public function withProtocolVersion($version)
+    public function withProtocolVersion($version): MessageInterface
     {
         return $this;
     }
 
-    public function withStatus($code, $reasonPhrase = '')
+    public function withStatus($code, $reasonPhrase = ''): ResponseInterface
     {
         return $this;
     }
