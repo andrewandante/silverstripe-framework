@@ -551,7 +551,7 @@ class GridFieldTest extends SapphireTest
         $gridField->setMessage(null);
 
         // A form that passes validation should not display a validation error in the FieldHolder output.
-        $form->setValidator(new RequiredFieldsValidator());
+        $form->setValidator(null);
         $form->validationResult();
         $gridfieldOutput = $gridField->FieldHolder();
         $this->assertStringNotContainsString('<p class="message ' . ValidationResult::TYPE_ERROR . '">', $gridfieldOutput);

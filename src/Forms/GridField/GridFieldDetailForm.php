@@ -14,7 +14,6 @@ use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\FieldList;
-use SilverStripe\Forms\FieldsValidator;
 use SilverStripe\Forms\Validation\Validator;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
@@ -147,10 +146,8 @@ class GridFieldDetailForm extends AbstractGridFieldComponent implements GridFiel
         if (!$this->getValidator()) {
             if ($record->hasMethod('getCMSCompositeValidator')) {
                 $validator = $record->getCMSCompositeValidator();
-            } else {
-                $validator = FieldsValidator::create();
+                $this->setValidator($validator);
             }
-            $this->setValidator($validator);
         }
 
         return $handler->handleRequest($request);
