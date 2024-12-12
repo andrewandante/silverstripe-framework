@@ -116,12 +116,6 @@ class RequiredFieldsValidator extends Validator
         $valid = true;
         $fields = $this->form->Fields();
 
-        foreach ($fields as $field) {
-            $result = $field->validate();
-            $valid = $result->isValid() && $valid;
-            $this->result->combineAnd($result);
-        }
-
         if (!$this->required) {
             return $valid;
         }

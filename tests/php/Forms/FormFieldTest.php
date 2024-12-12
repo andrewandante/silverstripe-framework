@@ -41,7 +41,6 @@ use SilverStripe\Forms\SearchableDropdownField;
 use PHPUnit\Framework\Attributes\DataProvider;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\ConfirmedPasswordField;
-use SilverStripe\Forms\FieldsValidator;
 use SilverStripe\Forms\NumericField;
 use SilverStripe\Forms\CheckboxField_Readonly;
 use SilverStripe\VersionedAdmin\Forms\DiffField;
@@ -548,7 +547,7 @@ class FormFieldTest extends SapphireTest
         /** @var TextField|FieldValidationExtension $field */
         $field = new TextField('Test');
         $field->setMaxLength(5);
-        $form = new Form(null, 'test', new FieldList($field), new FieldList(), new FieldsValidator());
+        $form = new Form(null, 'test', new FieldList($field), new FieldList());
         $form->disableSecurityToken();
 
         $field->setValue('IAmLongerThan5Characters');
