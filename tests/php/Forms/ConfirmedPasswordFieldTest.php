@@ -9,7 +9,7 @@ use SilverStripe\Forms\ConfirmedPasswordField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\ReadonlyField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Security\Member;
 use SilverStripe\View\SSViewer;
 use Closure;
@@ -466,7 +466,7 @@ class ConfirmedPasswordFieldTest extends SapphireTest
                 $requiredFields[] = 'Test[_Password]';
                 $requiredFields[] = 'Test[_ConfirmPassword]';
             }
-            $form->setValidator(new RequiredFields($requiredFields));
+            $form->setValidator(new RequiredFieldsValidator($requiredFields));
 
             $rendered = $field->Field();
             $fieldOneRegex = '<input\s+type="password"\s+name="Test\[_Password\]"\s[^>]*?required="required"\s+aria-required="true"\s[^>]*\/>';

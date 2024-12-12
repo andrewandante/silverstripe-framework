@@ -12,7 +12,7 @@ use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\MoneyField;
 use SilverStripe\Forms\NumericField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Core\Validation\ValidationException;
 use SilverStripe\Core\Validation\ValidationResult;
@@ -69,7 +69,7 @@ class ControllerWithSpecialSubmittedValueFields extends Controller implements Te
             new FieldList(
                 FormAction::create('doSubmit')
             ),
-            new RequiredFields(
+            new RequiredFieldsValidator(
                 'SomeRequiredField'
             )
         );

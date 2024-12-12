@@ -20,6 +20,8 @@ use SilverStripe\Security\SecurityToken;
 use SilverStripe\View\AttributesHTML;
 use SilverStripe\View\SSViewer;
 use SilverStripe\Model\ModelData;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
+use SilverStripe\Forms\Validation\Validator;
 
 /**
  * Base class for all forms.
@@ -297,8 +299,10 @@ class Form extends ModelData implements HasRequestHandler
         $this->setName($name);
 
         // Form validation
-        $this->validator = ($validator) ? $validator : new RequiredFields();
-        $this->validator->setForm($this);
+        if ($validator) {
+            $this->validator = $validator;
+            $this->validator->setForm($this);
+        }
 
         // Form error controls
         $this->restoreFormState();
@@ -1262,17 +1266,23 @@ class Form extends ModelData implements HasRequestHandler
      */
     public function validationResult()
     {
-        // Automatically pass if there is no validator, or the clicked button is exempt
+        $result = ValidationResult::create();
+        // Automatically pass if the clicked button is exempt
         // Note: Soft support here for validation with absent request handler
         $handler = $this->getRequestHandler();
         $action = $handler ? $handler->buttonClicked() : null;
-        $validator = $this->getValidator();
-        if (!$validator || $this->actionIsValidationExempt($action)) {
-            return ValidationResult::create();
+        if ($this->actionIsValidationExempt($action)) {
+            return $result;
         }
-
+        // Invoke FormField validation
+        foreach ($this->Fields() as $field) {
+            $result->combineAnd($field->validate());
+        }
         // Invoke validator
-        $result = $validator->validate();
+        $validator = $this->getValidator();
+        if ($validator) {
+            $result->combineAnd($validator->validate());
+        }
         $this->loadMessagesFrom($result);
         return $result;
     }

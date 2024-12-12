@@ -4,7 +4,6 @@ namespace SilverStripe\Forms\Tests;
 
 use SilverStripe\Dev\FunctionalTest;
 use SilverStripe\Forms\EmailField;
-use SilverStripe\Forms\FieldsValidator;
 
 class EmailFieldTest extends FunctionalTest
 {

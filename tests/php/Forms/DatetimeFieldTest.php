@@ -9,7 +9,7 @@ use SilverStripe\Forms\DatetimeField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\Tests\DatetimeFieldTest\Model;
 use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\FieldType\DBDatetime;

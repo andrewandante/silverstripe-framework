@@ -3,7 +3,7 @@
 namespace SilverStripe\Forms\Tests;
 
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\SearchableDropdownField;
 use SilverStripe\Forms\TreeDropdownField;
@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\FieldList;
 
-class RequiredFieldsTest extends SapphireTest
+class RequiredFieldsValidatorTest extends SapphireTest
 {
     public function testConstructingWithArray()
     {
@@ -23,7 +23,7 @@ class RequiredFieldsTest extends SapphireTest
             'Image',
             'AnotherField'
         ];
-        $requiredFields = new RequiredFields($fields);
+        $requiredFields = new RequiredFieldsValidator($fields);
         //check the fields and the array match
         $this->assertEquals(
             $fields,
@@ -35,7 +35,7 @@ class RequiredFieldsTest extends SapphireTest
     public function testConstructingWithArguments()
     {
         //can we construct with arguments?
-        $requiredFields = new RequiredFields(
+        $requiredFields = new RequiredFieldsValidator(
             'Title',
             'Content',
             'Image',
@@ -57,7 +57,7 @@ class RequiredFieldsTest extends SapphireTest
     public function testRemoveValidation()
     {
         //can we remove all fields at once?
-        $requiredFields = new RequiredFields(
+        $requiredFields = new RequiredFieldsValidator(
             'Title',
             'Content',
             'Image',
@@ -74,7 +74,7 @@ class RequiredFieldsTest extends SapphireTest
     public function testRemoveRequiredField()
     {
         //set up the required fields
-        $requiredFields = new RequiredFields(
+        $requiredFields = new RequiredFieldsValidator(
             'Title',
             'Content',
             'Image',
@@ -117,7 +117,7 @@ class RequiredFieldsTest extends SapphireTest
     public function testAddRequiredField()
     {
         //set up the validator
-        $requiredFields = new RequiredFields(
+        $requiredFields = new RequiredFieldsValidator(
             'Title'
         );
         //add a field
@@ -183,14 +183,14 @@ class RequiredFieldsTest extends SapphireTest
     public function testAppendRequiredFields()
     {
         //get the validator
-        $requiredFields = new RequiredFields(
+        $requiredFields = new RequiredFieldsValidator(
             'Title',
             'Content',
             'Image',
             'AnotherField'
         );
         //create another validator with other fields
-        $otherRequiredFields = new RequiredFields(
+        $otherRequiredFields = new RequiredFieldsValidator(
             [
             'ExtraField1',
             'ExtraField2'
@@ -212,7 +212,7 @@ class RequiredFieldsTest extends SapphireTest
             "Merging of required fields failed to behave as expected"
         );
         // create the standard validator so we can check duplicates are ignored
-        $otherRequiredFields = new RequiredFields(
+        $otherRequiredFields = new RequiredFieldsValidator(
             'Title',
             'Content',
             'Image',
@@ -234,7 +234,7 @@ class RequiredFieldsTest extends SapphireTest
             "Merging of required fields with duplicates failed to behave as expected"
         );
         //add some new fields and some old ones in a strange order
-        $otherRequiredFields = new RequiredFields(
+        $otherRequiredFields = new RequiredFieldsValidator(
             'ExtraField3',
             'Title',
             'ExtraField4',
@@ -263,7 +263,7 @@ class RequiredFieldsTest extends SapphireTest
     public function testFieldIsRequired()
     {
         //get the validator
-        $requiredFields = new RequiredFields(
+        $requiredFields = new RequiredFieldsValidator(
             $fieldNames = [
             'Title',
             'Content',
@@ -312,7 +312,7 @@ class RequiredFieldsTest extends SapphireTest
         $param = $className === TreeDropdownField::class ? Group::class : Group::get();
         $field = new $className('TestField', 'TestField', $param);
         $form->Fields()->push($field);
-        $validator = new RequiredFields('TestField');
+        $validator = new RequiredFieldsValidator('TestField');
         $validator->setForm($form);
         // blank string and 0 and '0' and array with value of 0 fail required field validation
         $this->assertFalse($validator->php(['TestField' => '']));
@@ -418,12 +418,12 @@ class RequiredFieldsTest extends SapphireTest
         bool $allowWhitespaceOnly,
         bool $expected,
     ): void {
-        $validator = new RequiredFields(['TestField']);
+        $validator = new RequiredFieldsValidator(['TestField']);
         $this->assertSame(true, $validator->getAllowWhitespaceOnly());
         $field = new TextField('TestField');
         $field->setValue($value);
         $form = new Form(null, null, new FieldList([$field]), null, $validator);
-        RequiredFields::config()->set('allow_whitespace_only', $allowWhitespaceOnly);
+        RequiredFieldsValidator::config()->set('allow_whitespace_only', $allowWhitespaceOnly);
         $result = $validator->validate($form);
         $this->assertEquals($expected, $result->isValid());
     }
@@ -434,7 +434,7 @@ class RequiredFieldsTest extends SapphireTest
         bool $allowWhitespaceOnly,
         bool $expected,
     ): void {
-        $validator = new RequiredFields(['TestField']);
+        $validator = new RequiredFieldsValidator(['TestField']);
         $validator->setAllowWhitespaceOnly($allowWhitespaceOnly);
         $this->assertSame($allowWhitespaceOnly, $validator->getAllowWhitespaceOnly());
         $field = new TextField('TestField');
@@ -443,10 +443,10 @@ class RequiredFieldsTest extends SapphireTest
         $result = $validator->validate($form);
         $this->assertEquals($expected, $result->isValid());
         // assert that global config makes no difference
-        RequiredFields::config()->set('allow_whitespace_only', true);
+        RequiredFieldsValidator::config()->set('allow_whitespace_only', true);
         $result = $validator->validate($form);
         $this->assertEquals($expected, $result->isValid());
-        RequiredFields::config()->set('allow_whitespace_only', false);
+        RequiredFieldsValidator::config()->set('allow_whitespace_only', false);
         $result = $validator->validate($form);
         $this->assertEquals($expected, $result->isValid());
     }

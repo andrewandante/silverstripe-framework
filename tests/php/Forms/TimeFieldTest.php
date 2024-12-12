@@ -7,7 +7,7 @@ use LogicException;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\TimeField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\i18n\i18n;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;

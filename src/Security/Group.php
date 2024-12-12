@@ -4,7 +4,7 @@ namespace SilverStripe\Security;
 
 use SilverStripe\Admin\SecurityAdmin;
 use SilverStripe\Core\Convert;
-use SilverStripe\Forms\CompositeValidator;
+use SilverStripe\Forms\Validation\CompositeValidator;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
@@ -23,7 +23,7 @@ use SilverStripe\Forms\HiddenField;
 use SilverStripe\Forms\HTMLEditor\HTMLEditorConfig;
 use SilverStripe\Forms\ListboxField;
 use SilverStripe\Forms\LiteralField;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\Tab;
 use SilverStripe\Forms\TabSet;
 use SilverStripe\Forms\TextareaField;
@@ -495,16 +495,6 @@ class Group extends DataObject
     }
 
     /**
-     * @return string
-     */
-    public function getTreeTitle()
-    {
-        $title = htmlspecialchars($this->Title ?? '', ENT_QUOTES);
-        $this->extend('updateTreeTitle', $title);
-        return $title;
-    }
-
-    /**
      * Overloaded to ensure the code is always descent.
      *
      * @param string $val
@@ -559,7 +549,7 @@ class Group extends DataObject
     {
         $validator = parent::getCMSCompositeValidator();
 
-        $validator->addValidator(RequiredFields::create([
+        $validator->addValidator(RequiredFieldsValidator::create([
             'Title'
         ]));
 

@@ -6,7 +6,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\CurrencyField;
 use SilverStripe\Forms\CurrencyField_Readonly;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\ORM\FieldType\DBCurrency;
 
 class CurrencyFieldTest extends SapphireTest

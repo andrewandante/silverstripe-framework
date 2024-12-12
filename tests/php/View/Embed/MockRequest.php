@@ -5,6 +5,7 @@ namespace SilverStripe\View\Tests\Embed;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\MessageInterface;
 
 class MockRequest implements RequestInterface
 {
@@ -17,80 +18,88 @@ class MockRequest implements RequestInterface
         $this->mockUri = $mockUri;
     }
 
-    public function getRequestTarget()
+    public function getRequestTarget(): string
     {
+        return '';
     }
 
-    public function getMethod()
+    public function getMethod(): string
     {
+        return '';
     }
 
-    public function getUri()
+    public function getUri(): UriInterface
     {
         $this->unitTest->setFirstRequest(false);
         return $this->mockUri;
     }
 
-    public function getProtocolVersion()
+    public function getProtocolVersion(): string
     {
+        return '';
     }
 
-    public function getHeaders()
+    public function getHeaders(): array
     {
+        return [];
     }
 
-    public function getHeader($name)
+    public function getHeader($name): array
     {
+        return [];
     }
 
-    public function getHeaderLine($name)
+    public function getHeaderLine($name): string
     {
+        return '';
     }
 
-    public function getBody()
+    public function getBody(): StreamInterface
     {
+        return MockUtil::createStreamInterface('');
     }
 
-    public function hasHeader($name)
+    public function hasHeader($name): bool
     {
+        return false;
     }
 
-    public function withHeader($name, $value)
-    {
-        return $this;
-    }
-
-    public function withAddedHeader($name, $value)
-    {
-        return $this;
-    }
-
-    public function withoutHeader($name)
+    public function withHeader($name, $value): MessageInterface
     {
         return $this;
     }
 
-    public function withBody(StreamInterface $body)
+    public function withAddedHeader($name, $value): MessageInterface
     {
         return $this;
     }
 
-    public function withProtocolVersion($version)
+    public function withoutHeader($name): MessageInterface
     {
         return $this;
     }
 
-    public function withRequestTarget($requestTarget)
+    public function withBody(StreamInterface $body): MessageInterface
     {
         return $this;
     }
 
-    public function withMethod($method)
+    public function withProtocolVersion($version): MessageInterface
     {
         return $this;
     }
 
-    public function withUri(UriInterface $uri, $preserveHost = false)
+    public function withRequestTarget($requestTarget): RequestInterface
+    {
+        return $this;
+    }
+
+    public function withMethod($method): RequestInterface
+    {
+        return $this;
+    }
+
+    public function withUri(UriInterface $uri, $preserveHost = false): RequestInterface
     {
         return $this;
     }

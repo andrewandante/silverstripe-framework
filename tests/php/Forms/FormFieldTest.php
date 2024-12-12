@@ -20,7 +20,7 @@ use SilverStripe\Forms\GridField\GridState;
 use SilverStripe\Forms\NullableField;
 use SilverStripe\Forms\PopoverField;
 use SilverStripe\Forms\PrintableTransformation_TabSet;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\SelectionGroup;
 use SilverStripe\Forms\SelectionGroup_Item;
 use SilverStripe\Forms\Tab;
@@ -41,7 +41,6 @@ use SilverStripe\Forms\SearchableDropdownField;
 use PHPUnit\Framework\Attributes\DataProvider;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\ConfirmedPasswordField;
-use SilverStripe\Forms\FieldsValidator;
 use SilverStripe\Forms\NumericField;
 use SilverStripe\Forms\CheckboxField_Readonly;
 use SilverStripe\VersionedAdmin\Forms\DiffField;
@@ -533,7 +532,7 @@ class FormFieldTest extends SapphireTest
     public function testGetSchemaStateWithFormValidation()
     {
         $field = new FormField('MyField', 'My Field');
-        $validator = new RequiredFields('MyField');
+        $validator = new RequiredFieldsValidator('MyField');
         $form = new Form(null, 'TestForm', new FieldList($field), new FieldList(), $validator);
         $form->validationResult();
         $schema = $field->getSchemaState();
@@ -548,7 +547,7 @@ class FormFieldTest extends SapphireTest
         /** @var TextField|FieldValidationExtension $field */
         $field = new TextField('Test');
         $field->setMaxLength(5);
-        $form = new Form(null, 'test', new FieldList($field), new FieldList(), new FieldsValidator());
+        $form = new Form(null, 'test', new FieldList($field), new FieldList());
         $form->disableSecurityToken();
 
         $field->setValue('IAmLongerThan5Characters');

@@ -5,7 +5,7 @@ namespace SilverStripe\Forms\Tests\GridField\GridFieldDetailFormTest;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
 
@@ -67,7 +67,7 @@ class Person extends DataObject implements TestOnly
 
     public function getCMSValidator()
     {
-        return new RequiredFields(
+        return new RequiredFieldsValidator(
             [
             'FirstName',
             'Surname'

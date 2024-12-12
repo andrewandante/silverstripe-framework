@@ -10,7 +10,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\TreeDropdownField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\Tests\HierarchyTest\HierarchyOnSubclassTestObject;
@@ -61,7 +61,7 @@ class TreeDropdownFieldTest extends SapphireTest
         $this->assertSame($expected, $field->getSchemaValidation());
         // field is required
         $fieldList = new FieldList([$field]);
-        $validator = new RequiredFields('TestTree');
+        $validator = new RequiredFieldsValidator('TestTree');
         new Form(null, null, $fieldList, null, $validator);
         $expected = [
             'required' => ['extraEmptyValues' => ['0']],

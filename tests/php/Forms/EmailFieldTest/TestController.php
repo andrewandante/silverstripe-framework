@@ -9,7 +9,7 @@ use SilverStripe\Forms\EmailField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\View\SSViewer;
 
 class TestController extends Controller implements TestOnly
@@ -54,7 +54,7 @@ class TestController extends Controller implements TestOnly
             new FieldList(
                 new FormAction('doSubmit')
             ),
-            new RequiredFields(
+            new RequiredFieldsValidator(
                 'Email'
             )
         );

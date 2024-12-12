@@ -18,8 +18,7 @@ use SilverStripe\Dev\Deprecation;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\FormScaffolder;
-use SilverStripe\Forms\CompositeValidator;
-use SilverStripe\Forms\FieldsValidator;
+use SilverStripe\Forms\Validation\CompositeValidator;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
 use SilverStripe\Forms\HiddenField;
@@ -2686,7 +2685,7 @@ class DataObject extends ModelData implements DataObjectInterface, i18nEntityPro
      */
     public function getCMSCompositeValidator(): CompositeValidator
     {
-        $compositeValidator = CompositeValidator::create([FieldsValidator::create()]);
+        $compositeValidator = CompositeValidator::create();
 
         // Support for the old method during the deprecation period
         if ($this->hasMethod('getCMSValidator')) {
