@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forms\GridField;
 
+use League\Csv\Bom;
 use League\Csv\Writer;
 use LogicException;
 use SilverStripe\Control\HTTPRequest;
@@ -180,8 +181,8 @@ class GridFieldExportButton extends AbstractGridFieldComponent implements GridFi
         $csvWriter = Writer::createFromFileObject(new \SplTempFileObject());
         $csvWriter->setDelimiter($this->getCsvSeparator());
         $csvWriter->setEnclosure($this->getCsvEnclosure());
-        $csvWriter->setNewline("\r\n"); //use windows line endings for compatibility with some csv libraries
-        $csvWriter->setOutputBOM(Writer::BOM_UTF8);
+        $csvWriter->setEndOfLine("\r\n"); //use windows line endings for compatibility with some csv libraries
+        $csvWriter->setOutputBOM(Bom::Utf8);
 
         if (!Config::inst()->get(get_class($this), 'xls_export_disabled')) {
             $csvWriter->addFormatter(function (array $row) {
@@ -269,11 +270,7 @@ class GridFieldExportButton extends AbstractGridFieldComponent implements GridFi
             }
         }
 
-        if (method_exists($csvWriter, 'getContent')) {
-            return $csvWriter->getContent();
-        }
-
-        return (string)$csvWriter;
+        return $csvWriter->toString();
     }
 
     /**
