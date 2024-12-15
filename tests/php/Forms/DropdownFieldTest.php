@@ -600,4 +600,62 @@ class DropdownFieldTest extends SapphireTest
         $field->setDisabledItems([ 'A', 'B' ]);
         $this->assertTrue($field->validate()->isValid());
     }
+
+    public function provideGetDefaultValue(): array
+    {
+        return [
+            [
+                'value' => null,
+                'hasEmptyDefault' => true,
+                'expected' => '',
+            ],
+            [
+                'value' => null,
+                'hasEmptyDefault' => false,
+                'expected' => 'one',
+            ],
+            [
+                'value' => 'four',
+                'hasEmptyDefault' => true,
+                'expected' => '',
+            ],
+            [
+                'value' => 'four',
+                'hasEmptyDefault' => false,
+                'expected' => 'one',
+            ],
+            [
+                'value' => 'two',
+                'hasEmptyDefault' => true,
+                'expected' => 'two',
+            ],
+            [
+                'value' => 'two',
+                'hasEmptyDefault' => false,
+                'expected' => 'two',
+            ],
+            [
+                // Note this is an int, but matches against the string key
+                'value' => 3,
+                'hasEmptyDefault' => true,
+                'expected' => 3,
+            ],
+            [
+                'value' => 3,
+                'hasEmptyDefault' => false,
+                'expected' => 3,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideGetDefaultValue
+     */
+    public function testGetDefaultValue(mixed $value, bool $hasEmptyDefault, mixed $expected): void
+    {
+        $field = new DropdownField('MyField', source: ['one' => 'one', 'two' => 'two', '3' => 'three']);
+        $field->setHasEmptyDefault($hasEmptyDefault);
+        $field->setValue($value);
+        $this->assertSame($expected, $field->getDefaultValue());
+    }
 }
