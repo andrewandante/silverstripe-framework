@@ -37,6 +37,7 @@ use SilverStripe\ORM\HasManyList;
 use SilverStripe\ORM\Hierarchy\Hierarchy;
 use SilverStripe\ORM\ManyManyList;
 use SilverStripe\ORM\UnsavedRelationList;
+use SilverStripe\Core\Validation\ValidationResult;
 
 /**
  * A security group.
@@ -504,7 +505,7 @@ class Group extends DataObject
         $this->setField('Code', Convert::raw2url($val));
     }
 
-    public function validate()
+    public function validate(): ValidationResult
     {
         $result = parent::validate();
 

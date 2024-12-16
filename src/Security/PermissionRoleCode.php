@@ -4,6 +4,7 @@ namespace SilverStripe\Security;
 
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\PermissionRole;
+use SilverStripe\Core\Validation\ValidationResult;
 
 /**
  * A PermissionRoleCode represents a single permission code assigned to a {@link PermissionRole}.
@@ -30,7 +31,7 @@ class PermissionRoleCode extends DataObject
         "Code" => true,
     ];
 
-    public function validate()
+    public function validate(): ValidationResult
     {
         $result = parent::validate();
 
