@@ -601,7 +601,7 @@ class DropdownFieldTest extends SapphireTest
         $this->assertTrue($field->validate()->isValid());
     }
 
-    public function provideGetDefaultValue(): array
+    public static function provideGetDefaultValue(): array
     {
         return [
             [
@@ -648,9 +648,7 @@ class DropdownFieldTest extends SapphireTest
         ];
     }
 
-    /**
-     * @dataProvider provideGetDefaultValue
-     */
+    #[DataProvider('provideGetDefaultValue')]
     public function testGetDefaultValue(mixed $value, bool $hasEmptyDefault, mixed $expected): void
     {
         $field = new DropdownField('MyField', source: ['one' => 'one', 'two' => 'two', '3' => 'three']);

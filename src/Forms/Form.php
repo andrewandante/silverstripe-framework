@@ -114,9 +114,9 @@ class Form extends ModelData implements HasRequestHandler
     protected $name;
 
     /**
-     * @var Validator
+     * @var null|Validator
      */
-    protected $validator;
+    protected $validator = null;
 
     /**
      * @see setValidationResponseCallback()
@@ -635,7 +635,7 @@ class Form extends ModelData implements HasRequestHandler
 
     /**
      * Get the {@link Validator} attached to this form.
-     * @return Validator
+     * @return null|Validator
      */
     public function getValidator()
     {
@@ -644,10 +644,10 @@ class Form extends ModelData implements HasRequestHandler
 
     /**
      * Set the {@link Validator} on this form.
-     * @param Validator $validator
+     * @param null|Validator $validator
      * @return $this
      */
-    public function setValidator(Validator $validator)
+    public function setValidator(?Validator $validator)
     {
         if ($validator) {
             $this->validator = $validator;
