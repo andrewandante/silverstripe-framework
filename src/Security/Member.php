@@ -1618,7 +1618,7 @@ class Member extends DataObject
     /**
      * Validate this member object.
      */
-    public function validate()
+    public function validate(): ValidationResult
     {
         // If validation is disabled, skip this step
         if (!DataObject::config()->uninherited('validation_enabled')) {

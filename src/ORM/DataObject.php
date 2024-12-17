@@ -12,6 +12,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Resettable;
 use SilverStripe\Core\Validation\ValidationException;
+use SilverStripe\Core\Validation\ValidationInterface;
 use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Dev\Debug;
 use SilverStripe\Dev\Deprecation;
@@ -111,7 +112,7 @@ use stdClass;
  * @property string $Created Date and time of DataObject creation.
  * @property string $ObsoleteClassName If ClassName no longer exists this will be set to the legacy value
  */
-class DataObject extends ModelData implements DataObjectInterface, i18nEntityProvider, Resettable
+class DataObject extends ModelData implements DataObjectInterface, i18nEntityProvider, Resettable, ValidationInterface
 {
     /**
      * Human-readable singular name.
@@ -1252,11 +1253,8 @@ class DataObject extends ModelData implements DataObjectInterface, i18nEntityPro
      *
      * It is expected that you call validate() in your own application to test that an object is valid before
      * attempting a write, and respond appropriately if it isn't.
-     *
-     * @see {@link ValidationResult}
-     * @return ValidationResult
      */
-    public function validate()
+    public function validate(): ValidationResult
     {
         $result = ValidationResult::create();
         // Call DBField::validate() on every DBField
