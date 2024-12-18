@@ -20,8 +20,8 @@ use SilverStripe\Security\SecurityToken;
 use SilverStripe\View\AttributesHTML;
 use SilverStripe\View\SSViewer;
 use SilverStripe\Model\ModelData;
-use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 use SilverStripe\Forms\Validation\Validator;
+use SilverStripe\Dev\Deprecation;
 
 /**
  * Base class for all forms.
@@ -1248,6 +1248,18 @@ class Form extends ModelData implements HasRequestHandler
     }
 
     /**
+     * Alias of validate() for backwards compatibility.
+     *
+     * @return ValidationResult
+     * @deprecated 5.4.0 Use validate() instead
+     */
+    public function validationResult()
+    {
+        Deprecation::notice('5.4.0', 'Use validate() instead');
+        return $this->validate();
+    }
+
+    /**
      * Processing that occurs before a form is executed.
      *
      * This includes form validation, if it fails, we throw a ValidationException
@@ -1258,13 +1270,10 @@ class Form extends ModelData implements HasRequestHandler
      *
      * Triggered through {@link httpSubmission()}.
      *
-     *
      * Note that CSRF protection takes place in {@link httpSubmission()},
      * if it fails the form data will never reach this method.
-     *
-     * @return ValidationResult
-     */
-    public function validationResult()
+    */
+    public function validate(): ValidationResult
     {
         $result = ValidationResult::create();
         // Automatically pass if the clicked button is exempt

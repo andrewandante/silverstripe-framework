@@ -216,7 +216,7 @@ class FormRequestHandler extends RequestHandler
         // Action handlers may throw ValidationExceptions.
         try {
             // Or we can use the Validator attached to the form
-            $result = $this->form->validationResult();
+            $result = $this->form->validate();
             if (!$result->isValid()) {
                 return $this->getValidationErrorResponse($result);
             }

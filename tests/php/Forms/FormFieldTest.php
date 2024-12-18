@@ -534,7 +534,7 @@ class FormFieldTest extends SapphireTest
         $field = new FormField('MyField', 'My Field');
         $validator = new RequiredFieldsValidator('MyField');
         $form = new Form(null, 'TestForm', new FieldList($field), new FieldList(), $validator);
-        $form->validationResult();
+        $form->validate();
         $schema = $field->getSchemaState();
         $this->assertEquals(
             '"My Field" is required',
@@ -566,10 +566,13 @@ class FormFieldTest extends SapphireTest
         $result = $field->validate();
         $this->assertFalse($result->isValid());
 
-        // Ensure messages set via updateValidate() propagate through after form validation
-        $result = $form->validationResult();
-        $state = $field->getSchemaState();
-        $this->assertEquals('A test error message', $state['message']['value']);
+        // Ensure messages set via updateValidationResult() propagate through to form fields after validation
+        $form->validate();
+        $schema = $field->getSchemaState();
+        $this->assertEquals(
+            'A test error message',
+            $schema['message']['value']
+        );
     }
 
     public function testValidationExtensionHooksAreCalledOnFormFieldSubclasses()
