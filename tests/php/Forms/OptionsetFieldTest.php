@@ -60,8 +60,8 @@ class OptionsetFieldTest extends SapphireTest
         $field->setValue('');
         $this->assertFalse($field->validate()->isValid());
 
-        // ... and should not pass "RequiredFieldsValidator" validation
-        $this->assertFalse($form->validationResult()->isValid());
+        // ... but should not pass "RequiredFields" validation
+        $this->assertFalse($form->validate()->isValid());
 
         // null value should pass field-level validation...
         $field->setValue(null);

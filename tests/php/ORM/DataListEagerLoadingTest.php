@@ -36,6 +36,9 @@ use SilverStripe\ORM\Tests\DataListTest\EagerLoading\ManyManyThroughSubEagerLoad
 use SilverStripe\ORM\Tests\DataListTest\EagerLoading\BelongsManyManyEagerLoadObject;
 use SilverStripe\ORM\Tests\DataListTest\EagerLoading\BelongsManyManySubEagerLoadObject;
 use SilverStripe\ORM\Tests\DataListTest\EagerLoading\BelongsManyManySubSubEagerLoadObject;
+use SilverStripe\ORM\Tests\DataListTest\EagerLoading\MixedBackwardsHasManyEagerLoadObject;
+use SilverStripe\ORM\Tests\DataListTest\EagerLoading\MixedBackwardsHasOneEagerLoadObject;
+use SilverStripe\ORM\Tests\DataListTest\EagerLoading\MixedBackwardsManyManyEagerLoadObject;
 use SilverStripe\ORM\Tests\DataListTest\EagerLoading\MixedHasManyEagerLoadObject;
 use SilverStripe\ORM\Tests\DataListTest\EagerLoading\MixedHasOneEagerLoadObject;
 use SilverStripe\ORM\Tests\DataListTest\EagerLoading\MixedManyManyEagerLoadObject;
@@ -77,6 +80,9 @@ class DataListEagerLoadingTest extends SapphireTest
             MixedHasManyEagerLoadObject::class,
             MixedHasOneEagerLoadObject::class,
             MixedManyManyEagerLoadObject::class,
+            MixedBackwardsHasOneEagerLoadObject::class,
+            MixedBackwardsHasManyEagerLoadObject::class,
+            MixedBackwardsManyManyEagerLoadObject::class,
         ];
     }
 
@@ -188,154 +194,175 @@ class DataListEagerLoadingTest extends SapphireTest
             [
                 'iden' => 'lazy-load',
                 'eagerLoad' => [],
-                'expected' => 83
+                'expected' => 91
             ],
             [
                 'iden' => 'has-one-a',
                 'eagerLoad' => [
                     'HasOneEagerLoadObject',
                 ],
-                'expected' => 82
+                'expected' => 90
             ],
             [
                 'iden' => 'has-one-b',
                 'eagerLoad' => [
                     'HasOneEagerLoadObject.HasOneSubEagerLoadObject',
                 ],
-                'expected' => 81
+                'expected' => 89
             ],
             [
                 'iden' => 'has-one-c',
                 'eagerLoad' => [
                     'HasOneEagerLoadObject.HasOneSubEagerLoadObject.HasOneSubSubEagerLoadObject',
                 ],
-                'expected' => 80
+                'expected' => 88
             ],
             [
                 'iden' => 'belongs-to-a',
                 'eagerLoad' => [
                     'BelongsToEagerLoadObject',
                 ],
-                'expected' => 82
+                'expected' => 90
             ],
             [
                 'iden' => 'belongs-to-b',
                 'eagerLoad' => [
                     'BelongsToEagerLoadObject.BelongsToSubEagerLoadObject',
                 ],
-                'expected' => 81
+                'expected' => 89
             ],
             [
                 'iden' => 'belongs-to-c',
                 'eagerLoad' => [
                     'BelongsToEagerLoadObject.BelongsToSubEagerLoadObject.BelongsToSubSubEagerLoadObject',
                 ],
-                'expected' => 80
+                'expected' => 88
             ],
             [
                 'iden' => 'has-many-a',
                 'eagerLoad' => [
                     'HasManyEagerLoadObjects',
                 ],
-                'expected' => 82
+                'expected' => 90
             ],
             [
                 'iden' => 'has-many-b',
                 'eagerLoad' => [
                     'HasManyEagerLoadObjects.HasManySubEagerLoadObjects',
                 ],
-                'expected' => 79
+                'expected' => 87
             ],
             [
                 'iden' => 'has-many-c',
                 'eagerLoad' => [
                     'HasManyEagerLoadObjects.HasManySubEagerLoadObjects.HasManySubSubEagerLoadObjects',
                 ],
-                'expected' => 72
+                'expected' => 80
             ],
             [
                 'iden' => 'many-many-a',
                 'eagerLoad' => [
                     'ManyManyEagerLoadObjects',
                 ],
-                'expected' => 83 // same number as lazy-load, though without an INNER JOIN
+                'expected' => 91 // same number as lazy-load, though without an INNER JOIN
             ],
             [
                 'iden' => 'many-many-b',
                 'eagerLoad' => [
                     'ManyManyEagerLoadObjects.ManyManySubEagerLoadObjects',
                 ],
-                'expected' => 81
+                'expected' => 89
             ],
             [
                 'iden' => 'many-many-c',
                 'eagerLoad' => [
                     'ManyManyEagerLoadObjects.ManyManySubEagerLoadObjects.ManyManySubSubEagerLoadObjects',
                 ],
-                'expected' => 75
+                'expected' => 83
             ],
             [
                 'iden' => 'many-many-through-a',
                 'eagerLoad' => [
                     'ManyManyThroughEagerLoadObjects',
                 ],
-                'expected' => 83
+                'expected' => 91
             ],
             [
                 'iden' => 'many-many-through-b',
                 'eagerLoad' => [
                     'ManyManyThroughEagerLoadObjects.ManyManyThroughSubEagerLoadObjects',
                 ],
-                'expected' => 81
+                'expected' => 89
             ],
             [
                 'iden' => 'many-many-through-c',
                 'eagerLoad' => [
                     'ManyManyThroughEagerLoadObjects.ManyManyThroughSubEagerLoadObjects.ManyManyThroughSubSubEagerLoadObjects',
                 ],
-                'expected' => 75
+                'expected' => 83
             ],
             [
                 'iden' => 'belongs-many-many-a',
                 'eagerLoad' => [
                     'BelongsManyManyEagerLoadObjects',
                 ],
-                'expected' => 83
+                'expected' => 91
             ],
             [
                 'iden' => 'belongs-many-many-b',
                 'eagerLoad' => [
                     'BelongsManyManyEagerLoadObjects.BelongsManyManySubEagerLoadObjects',
                 ],
-                'expected' => 81
+                'expected' => 89
             ],
             [
                 'iden' => 'belongs-many-many-c',
                 'eagerLoad' => [
                     'BelongsManyManyEagerLoadObjects.BelongsManyManySubEagerLoadObjects.BelongsManyManySubSubEagerLoadObjects',
                 ],
-                'expected' => 75
+                'expected' => 83
             ],
             [
                 'iden' => 'mixed-a',
                 'eagerLoad' => [
                     'MixedManyManyEagerLoadObjects',
                 ],
-                'expected' => 83
+                'expected' => 91
             ],
             [
                 'iden' => 'mixed-b',
                 'eagerLoad' => [
                     'MixedManyManyEagerLoadObjects.MixedHasManyEagerLoadObjects',
                 ],
-                'expected' => 80
+                'expected' => 88
             ],
             [
                 'iden' => 'mixed-c',
                 'eagerLoad' => [
                     'MixedManyManyEagerLoadObjects.MixedHasManyEagerLoadObjects.MixedHasOneEagerLoadObject',
                 ],
-                'expected' => 73
+                'expected' => 81
+            ],
+            [
+                'iden' => 'mixed-back-a',
+                'eagerLoad' => [
+                    'MixedBackwardsHasOneEagerLoadObject',
+                ],
+                'expected' => 90
+            ],
+            [
+                'iden' => 'mixed-back-b',
+                'eagerLoad' => [
+                    'MixedBackwardsHasOneEagerLoadObject.MixedBackwardsHasManyEagerLoadObjects',
+                ],
+                'expected' => 89
+            ],
+            [
+                'iden' => 'mixed-back-c',
+                'eagerLoad' => [
+                    'MixedBackwardsHasOneEagerLoadObject.MixedBackwardsHasManyEagerLoadObjects.MixedBackwardsManyManyEagerLoadObjects',
+                ],
+                'expected' => 87
             ],
             [
                 'iden' => 'duplicates',
@@ -348,7 +375,7 @@ class DataListEagerLoadingTest extends SapphireTest
                     'BelongsManyManyEagerLoadObjects.BelongsManyManySubEagerLoadObjects',
                     'MixedManyManyEagerLoadObjects.MixedHasManyEagerLoadObjects.MixedHasOneEagerLoadObject',
                 ],
-                'expected' => 73
+                'expected' => 81
             ],
             [
                 'iden' => 'all',
@@ -360,8 +387,9 @@ class DataListEagerLoadingTest extends SapphireTest
                     'ManyManyThroughEagerLoadObjects.ManyManyThroughSubEagerLoadObjects.ManyManyThroughSubSubEagerLoadObjects',
                     'BelongsManyManyEagerLoadObjects.BelongsManyManySubEagerLoadObjects.BelongsManyManySubSubEagerLoadObjects',
                     'MixedManyManyEagerLoadObjects.MixedHasManyEagerLoadObjects.MixedHasOneEagerLoadObject',
+                    'MixedBackwardsHasOneEagerLoadObject.MixedBackwardsHasManyEagerLoadObjects.MixedBackwardsManyManyEagerLoadObjects',
                 ],
-                'expected' => 32
+                'expected' => 36
             ],
         ];
     }
@@ -442,6 +470,13 @@ class DataListEagerLoadingTest extends SapphireTest
             'mixedHasOneObj 0 1 0 1',
             'mixedHasManyObj 0 1 1',
             'mixedHasOneObj 0 1 1 1',
+            'mixedBackwardsHasOneObj 0',
+            'mixedBackwardsHasManyObj 0 0',
+            'mixedBackwardsManyManyObj 0 0 0',
+            'mixedBackwardsManyManyObj 0 0 1',
+            'mixedBackwardsHasManyObj 0 1',
+            'mixedBackwardsManyManyObj 0 1 0',
+            'mixedBackwardsManyManyObj 0 1 1',
             'obj 1',
             'hasOneObj 1',
             'hasOneSubObj 1',
@@ -515,6 +550,13 @@ class DataListEagerLoadingTest extends SapphireTest
             'mixedHasOneObj 1 1 0 1',
             'mixedHasManyObj 1 1 1',
             'mixedHasOneObj 1 1 1 1',
+            'mixedBackwardsHasOneObj 1',
+            'mixedBackwardsHasManyObj 1 0',
+            'mixedBackwardsManyManyObj 1 0 0',
+            'mixedBackwardsManyManyObj 1 0 1',
+            'mixedBackwardsHasManyObj 1 1',
+            'mixedBackwardsManyManyObj 1 1 0',
+            'mixedBackwardsManyManyObj 1 1 1',
         ];
     }
 
@@ -669,6 +711,25 @@ class DataListEagerLoadingTest extends SapphireTest
                     }
                 }
             }
+            $mixedBackwardsHasOneObj = new MixedBackwardsHasOneEagerLoadObject();
+            $mixedBackwardsHasOneObj->Title = "mixedBackwardsHasOneObj $i";
+            $mixedBackwardsHasOneObjID = $mixedBackwardsHasOneObj->write();
+
+            $obj->MixedBackwardsHasOneEagerLoadObjectID = $mixedBackwardsHasOneObjID;
+            $obj->write();
+
+            for ($j = 0; $j < $numLevel2Records; $j++) {
+                $mixedBackwardsHasManyObj = new MixedBackwardsHasManyEagerLoadObject();
+                $mixedBackwardsHasManyObj->Title = "mixedBackwardsHasManyObj $i $j";
+                $mixedBackwardsHasManyObj->MixedBackwardsHasOneEagerLoadObjectID = $mixedBackwardsHasOneObjID;
+                $mixedBackwardsHasManyObjID = $mixedBackwardsHasManyObj->write();
+                $mixedBackwardsHasOneObj->MixedBackwardsHasManyEagerLoadObjects()->add($mixedBackwardsHasManyObj);
+                for ($k = 0; $k < $numLevel3Records; $k++) {
+                    $mixedBackwardsManyManyObj = new MixedBackwardsManyManyEagerLoadObject();
+                    $mixedBackwardsManyManyObj->Title = "mixedBackwardsManyManyObj $i $j $k";
+                    $mixedBackwardsHasManyObj->MixedBackwardsManyManyEagerLoadObjects()->add($mixedBackwardsManyManyObj);
+                }
+            }
         }
     }
 
@@ -745,6 +806,16 @@ class DataListEagerLoadingTest extends SapphireTest
                     foreach ($mixedManyManyObj->MixedHasManyEagerLoadObjects() as $mixedHasManyObj) {
                         $results[] = $mixedHasManyObj->Title;
                         $results[] = $mixedHasManyObj->MixedHasOneEagerLoadObject()->Title;
+                    }
+                }
+                $mixedBackwardsHasOneObj = $obj->MixedBackwardsHasOneEagerLoadObject();
+                if ($mixedBackwardsHasOneObj) {
+                    $results[] = $mixedBackwardsHasOneObj->Title;
+                    foreach ($mixedBackwardsHasOneObj->MixedBackwardsHasManyEagerLoadObjects() as $mixedBackwardsHasManyObj) {
+                        $results[] = $mixedBackwardsHasManyObj->Title;
+                        foreach ($mixedBackwardsHasManyObj->MixedBackwardsManyManyEagerLoadObjects() as $mixedBackwardsManyManyObj) {
+                            $results[] = $mixedBackwardsManyManyObj->Title;
+                        }
                     }
                 }
             }
@@ -1689,6 +1760,17 @@ class DataListEagerLoadingTest extends SapphireTest
         $items = $this->providePolymorphHasOne();
         $this->validateMultipleAppearance($items, 5, EagerLoadObject::get(), 'HasOnePolymorphObject');
         $this->validateMultipleAppearance($items, 4, EagerLoadObject::get()->eagerLoad('HasOnePolymorphObject'), 'HasOnePolymorphObject');
+    }
+
+    /**
+     * Tests that attempting to eager load a sub relation to a polymorphic relation will throw an exception.
+     */
+    public function testEagerLoadingSubRelationToPolymorphicException(): void
+    {
+        $items = $this->providePolymorphHasOne();
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid relation passed to eagerLoad() - HasOnePolymorphObject.ManyManySubEagerLoadObjects. Further nested relations are not supported after polymorphic has_one relation HasOnePolymorphObject.");
+        EagerLoadObject::get()->eagerLoad("HasOnePolymorphObject.ManyManySubEagerLoadObjects")->toArray();
     }
 
     protected function providePolymorphHasOne(): array
