@@ -303,9 +303,9 @@ class TreeDropdownFieldTest extends SapphireTest
         $cssPath = 'ul.tree li#selector-TestTree-' . $subObject1->ID . ' li#selector-TestTree-' . $subObject1ChildB->ID . ' a';
         $firstResult = $parser->getBySelector($cssPath);
         $this->assertEquals(
-            $subObject1ChildB->Name,
+            $subObject1ChildB->Title,
             (string)$firstResult[0],
-            $subObject1ChildB->Name . ' is found, nested under ' . $subObject1->Name
+            $subObject1ChildB->Title . ' is found, nested under ' . $subObject1->Title
         );
 
         // other objects which don't contain the keyword 'SubObject' are not returned in search results

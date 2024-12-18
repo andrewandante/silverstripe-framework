@@ -9,6 +9,8 @@ use SilverStripe\Core\Validation\ValidationException;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\Hierarchy\Hierarchy;
+use SilverStripe\Security\Group;
+use SilverStripe\ORM\Tests\HierarchyTest\TestTreeTitleExtension;
 
 class HierarchyTest extends SapphireTest
 {
@@ -681,5 +683,16 @@ class HierarchyTest extends SapphireTest
         $obj = new $class();
 
         $this->assertSame($expected, $obj->defaultParent());
+    }
+
+    /**
+     * Tests that HTML added by an extension is not escaped, though HTML in the base Title still is
+     */
+    public function testGetTreeTitleExtension()
+    {
+        Group::add_extension(TestTreeTitleExtension::class);
+        $group = new Group();
+        $group->Title = '<b>My group</b>';
+        $this->assertSame('<i>&lt;b&gt;My group&lt;/b&gt;</i>', $group->getTreeTitle());
     }
 }

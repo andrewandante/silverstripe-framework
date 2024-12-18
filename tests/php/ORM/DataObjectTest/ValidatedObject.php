@@ -14,7 +14,7 @@ class ValidatedObject extends DataObject implements TestOnly
         'Name' => 'Varchar(50)'
     ];
 
-    public function validate()
+    public function validate(): ValidationResult
     {
         $result = ValidationResult::create();
         if (empty($this->Name)) {

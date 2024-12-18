@@ -808,8 +808,9 @@ class Hierarchy extends Extension
     {
         $owner = $this->getOwner();
         $title = $owner->MenuTitle ?: $owner->Title;
+        $title = Convert::raw2xml($title ?? '');
         $owner->extend('updateTreeTitle', $title);
-        return Convert::raw2xml($title ?? '');
+        return $title;
     }
 
     /**
