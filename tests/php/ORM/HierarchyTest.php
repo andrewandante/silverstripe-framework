@@ -690,6 +690,12 @@ class HierarchyTest extends SapphireTest
      */
     public function testGetTreeTitleExtension()
     {
+        // Ensure no other extensions are applied which would change the expected result
+        foreach (Group::get_extensions() as $extension) {
+            if ($extension !== Hierarchy::class) {
+                Group::remove_extension($extension);
+            }
+        }
         Group::add_extension(TestTreeTitleExtension::class);
         $group = new Group();
         $group->Title = '<b>My group</b>';
