@@ -1364,7 +1364,7 @@ class FormTest extends FunctionalTest
         }
         $form = new Form(null, 'testForm', $fieldList, new FieldList([/* no actions */]));
 
-        $result = $form->validationResult();
+        $result = $form->validate();
         $this->assertSame($isValid, $result->isValid());
         $messages = $result->getMessages();
         if ($isValid) {
