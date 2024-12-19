@@ -12,6 +12,7 @@ use SilverStripe\Control\RequestHandler;
 use SilverStripe\Control\Session;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Core\Validation\ValidationInterface;
 use SilverStripe\ORM\DataObjectInterface;
 use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\Core\Validation\ValidationResult;
@@ -21,7 +22,6 @@ use SilverStripe\View\AttributesHTML;
 use SilverStripe\View\SSViewer;
 use SilverStripe\Model\ModelData;
 use SilverStripe\Forms\Validation\Validator;
-use SilverStripe\Dev\Deprecation;
 
 /**
  * Base class for all forms.
@@ -64,7 +64,7 @@ use SilverStripe\Dev\Deprecation;
  * For example, the "URLSegment" field in a standard CMS form would be
  * accessible through "admin/EditForm/field/URLSegment/FieldHolder".
  */
-class Form extends ModelData implements HasRequestHandler
+class Form extends ModelData implements HasRequestHandler, ValidationInterface
 {
     use AttributesHTML;
     use FormMessage;
@@ -1245,18 +1245,6 @@ class Form extends ModelData implements HasRequestHandler
     public function getLegend()
     {
         return $this->legend;
-    }
-
-    /**
-     * Alias of validate() for backwards compatibility.
-     *
-     * @return ValidationResult
-     * @deprecated 5.4.0 Use validate() instead
-     */
-    public function validationResult()
-    {
-        Deprecation::notice('5.4.0', 'Use validate() instead');
-        return $this->validate();
     }
 
     /**
