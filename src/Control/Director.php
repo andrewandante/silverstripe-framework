@@ -13,6 +13,7 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Kernel;
 use SilverStripe\Core\Path;
 use SilverStripe\PolyExecution\PolyCommand;
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\View\Requirements;
 use SilverStripe\View\Requirements_Backend;
@@ -1062,9 +1063,11 @@ class Director implements TemplateGlobalProvider
      * @param HTTPRequest $request
      *
      * @return string|null null if not overridden, otherwise the actual value
+     * @deprecated 5.4.0 Use get_environment_type() instead.
      */
     public static function get_session_environment_type(?HTTPRequest $request = null)
     {
+        Deprecation::notice('5.4.0', 'Use get_environment_type() instead.');
         $request = static::currentRequest($request);
 
         if (!$request) {
