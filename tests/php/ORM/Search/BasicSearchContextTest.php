@@ -234,6 +234,69 @@ class BasicSearchContextTest extends SapphireTest
         $this->assertSame($expected, $results->column('Name'));
     }
 
+    public static function provideGetQueryLimit(): array
+    {
+        return [
+            'no limit' => [
+                'limit' => null,
+                'expected' => [
+                    'James',
+                    'John',
+                    'Jane',
+                    'Hemi',
+                    'Sara',
+                    'MatchNothing',
+                ],
+            ],
+            'limit int' => [
+                'limit' => 3,
+                'expected' => [
+                    'James',
+                    'John',
+                    'Jane',
+                ],
+            ],
+            'paginated limit' => [
+                'limit' => [
+                    'limit' => 2,
+                    'start' => 3,
+                ],
+                'expected' => [
+                    'Hemi',
+                    'Sara',
+                ],
+            ],
+            'limit numeric string' => [
+                'limit' => '4',
+                'expected' => [
+                    'James',
+                    'John',
+                    'Jane',
+                    'Hemi',
+                ],
+            ],
+            'limit invalid string' => [
+                'limit' => 'blah',
+                'expected' => [
+                    'James',
+                    'John',
+                    'Jane',
+                    'Hemi',
+                    'Sara',
+                    'MatchNothing',
+                ],
+            ],
+        ];
+    }
+
+    #[DataProvider('provideGetQueryLimit')]
+    public function testGetQueryLimit(mixed $limit, array $expected): void
+    {
+        $context = new BasicSearchContext(ArrayData::class);
+        $results = $context->getQuery([], limit: $limit, existingQuery: $this->getList());
+        $this->assertSame($expected, $results->column('Name'));
+    }
+
     public function testGeneralSearch()
     {
         $list = $this->getList();
