@@ -27,18 +27,6 @@ class SearchableDropdownField extends DropdownField implements HasOneRelationFie
         $this->setHasEmptyDefault(true);
     }
 
-    /**
-     * @param string $string
-     * @return $this
-     *
-     * @deprecated 5.2.0 Use setPlaceholder() instead
-     */
-    public function setEmptyString($string)
-    {
-        Deprecation::notice('5.2.0', 'Use setPlaceholder() instead');
-        return parent::setEmptyString($string);
-    }
-
     public function getValueForValidation(): mixed
     {
         $arr = $this->getValueArray();
