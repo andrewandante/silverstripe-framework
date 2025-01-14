@@ -144,6 +144,9 @@ class Deprecation
      */
     protected static function get_called_method_from_trace($backtrace, $level = 1)
     {
+        if ($backtrace === null) {
+            return '';
+        }
         $level = (int)$level;
         if (!$level) {
             $level = 1;
@@ -188,8 +191,11 @@ class Deprecation
         return $called;
     }
 
-    private static function isCalledFromSupportedCode(array $backtrace): bool
+    private static function isCalledFromSupportedCode(?array $backtrace): bool
     {
+        if ($backtrace === null) {
+            return false;
+        }
         $called = Deprecation::get_called_from_trace($backtrace, 1);
         $file = $called['file'] ?? '';
         if (!$file) {
