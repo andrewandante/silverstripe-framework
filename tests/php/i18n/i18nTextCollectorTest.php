@@ -83,7 +83,7 @@ PHP;
         $mymodule = ModuleLoader::inst()->getManifest()->getModule('i18ntestmodule');
 
         $html = <<<SS
-        <% _t('Test.SINGLEQUOTE','Single Quote'); %>
+        <%t Test.SINGLEQUOTE 'Single Quote' %>
 <%t i18nTestModule.NEWMETHODSIG "New _t method signature test" %>
 <%t i18nTestModule.INJECTIONS_0 "Hello {name} {greeting}, and {goodbye}" name="Mark" greeting="welcome" goodbye="bye" %>
 <%t i18nTestModule.INJECTIONS_1 "Hello {name} {greeting}, and {goodbye}" name="Paul" greeting="welcome" goodbye="cya" %>
