@@ -6,12 +6,13 @@ use DOMElement;
 use SilverStripe\Core\XssSanitiser;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\View\Parsers\HTMLValue;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class XssSanitiserTest extends SapphireTest
 {
     protected $usesDatabase = false;
 
-    public function provideSanitise(): array
+    public static function provideSanitise(): array
     {
         // Most of these scenarios are inspired by Symfony's HtmlSanitizerAllTest scenarios
         return [
@@ -305,18 +306,14 @@ class XssSanitiserTest extends SapphireTest
         ];
     }
 
-    /**
-     * @dataProvider provideSanitise
-     */
+    #[DataProvider('provideSanitise')]
     public function testSanitiseString(string $input, string $expected): void
     {
         $sanitiser = new XssSanitiser();
         $this->assertSame($expected, $sanitiser->sanitiseString($input));
     }
 
-    /**
-     * @dataProvider provideSanitise
-     */
+    #[DataProvider('provideSanitise')]
     public function testSanitiseHtmlValue(string $input, string $expected): void
     {
         $sanitiser = new XssSanitiser();
@@ -325,9 +322,7 @@ class XssSanitiserTest extends SapphireTest
         $this->assertSame($expected, $htmlValue->getContent());
     }
 
-    /**
-     * @dataProvider provideSanitise
-     */
+    #[DataProvider('provideSanitise')]
     public function testSanitiseElement(string $input, string $expected): void
     {
         $sanitiser = new XssSanitiser();
@@ -341,7 +336,7 @@ class XssSanitiserTest extends SapphireTest
         $this->assertSame($expected, $htmlValue->getContent());
     }
 
-    public function provideSanitiseElementsAllowed(): array
+    public static function provideSanitiseElementsAllowed(): array
     {
         return [
             'disallow these by default' => [
@@ -362,9 +357,7 @@ class XssSanitiserTest extends SapphireTest
         ];
     }
 
-    /**
-     * @dataProvider provideSanitiseElementsAllowed
-     */
+    #[DataProvider('provideSanitiseElementsAllowed')]
     public function testSanitiseElementsAllowed(string $input, ?array $removeElements, string $expected): void
     {
         $sanitiser = new XssSanitiser();
@@ -374,7 +367,7 @@ class XssSanitiserTest extends SapphireTest
         $this->assertSame($expected, $sanitiser->sanitiseString($input));
     }
 
-    public function provideSanitiseAttributesAllowed(): array
+    public static function provideSanitiseAttributesAllowed(): array
     {
         return [
             'disallow these by default' => [
@@ -413,9 +406,7 @@ class XssSanitiserTest extends SapphireTest
         ];
     }
 
-    /**
-     * @dataProvider provideSanitiseAttributesAllowed
-     */
+    #[DataProvider('provideSanitiseAttributesAllowed')]
     public function testSanitiseAttributesAllowed(string $input, ?array $removeAttributes, string $expected): void
     {
         $sanitiser = new XssSanitiser();
@@ -425,7 +416,7 @@ class XssSanitiserTest extends SapphireTest
         $this->assertSame($expected, $sanitiser->sanitiseString($input));
     }
 
-    public function provideSanitiseNoKeepInnerHtml(): array
+    public static function provideSanitiseNoKeepInnerHtml(): array
     {
         return [
             'keeps inner html' => [
@@ -451,9 +442,7 @@ class XssSanitiserTest extends SapphireTest
         ];
     }
 
-    /**
-     * @dataProvider provideSanitiseNoKeepInnerHtml
-     */
+    #[DataProvider('provideSanitiseNoKeepInnerHtml')]
     public function testSanitiseNoKeepInnerHtml(string $input, bool $keepInnerHtml, string $expected): void
     {
         $sanitiser = new XssSanitiser();

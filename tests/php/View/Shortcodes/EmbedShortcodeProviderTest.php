@@ -12,6 +12,7 @@ use SilverStripe\View\Tests\Embed\EmbedUnitTest;
 use SilverStripe\View\Embed\EmbedContainer;
 use stdClass;
 use RuntimeException;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class EmbedShortcodeProviderTest extends EmbedUnitTest
 {
@@ -222,7 +223,7 @@ class EmbedShortcodeProviderTest extends EmbedUnitTest
         );
     }
 
-    public function provideSandboxHtml(): array
+    public static function provideSandboxHtml(): array
     {
         return [
             'normal' => [
@@ -365,9 +366,7 @@ class EmbedShortcodeProviderTest extends EmbedUnitTest
         ];
     }
 
-    /**
-     * @dataProvider provideSandboxHtml
-     */
+    #[DataProvider('provideSandboxHtml')]
     public function testSandboxHtml(
         string $url,
         array $excluded,

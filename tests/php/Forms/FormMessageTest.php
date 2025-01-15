@@ -6,13 +6,14 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\XssSanitiser;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forms\Tests\FormMessageTest\TestFormMessage;
-use SilverStripe\ORM\ValidationResult;
+use SilverStripe\Core\Validation\ValidationResult;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class FormMessageTest extends SapphireTest
 {
     protected $usesDatabase = false;
 
-    public function provideGetMessage(): array
+    public static function provideGetMessage(): array
     {
         return [
             'empty HTML' => [
@@ -69,8 +70,8 @@ class FormMessageTest extends SapphireTest
     /**
      * Test that getMessage() generally works and calls the sanitiser as appropriate.
      * Note we don't actually test the sanitisation here, as that is handled by the sanitiser's unit tests.
-     * @dataProvider provideGetMessage
      */
+    #[DataProvider('provideGetMessage')]
     public function testGetMessage(string $message, string $type, string $casting, string $expected): void
     {
         $mockSanitiserClass = get_class(new class extends XssSanitiser {
