@@ -485,6 +485,28 @@ class SecurityTest extends FunctionalTest
         $this->assertEquals($this->idFromFixture(Member::class, 'test'), $this->session()->get('loggedInAs'));
     }
 
+    public function testLostPasswordFormWithUniqueFieldIdentifier()
+    {
+        // override the unique identifier field
+        Member::config()->set('unique_identifier_field', 'Username');
+
+        /** @var Member $admin */
+        $member = $this->objFromFixture(Member::class, 'username-member');
+        $member->FailedLoginCount = 99;
+        $member->LockedOutUntil = DBDatetime::now()->getValue();
+        $member->write();
+
+        // load lostpassword form
+        $this->get('Security/lostpassword');
+        $labelElement = $this->cssParser()->getBySelector('#LostPasswordForm_lostPasswordForm_Email_Holder label');
+
+        $this->assertEquals(1, count($labelElement ?? []));
+        $this->assertStringContainsString(
+            '<label class="left" for="LostPasswordForm_lostPasswordForm_Email">Username</label>',
+            (string)$labelElement[0]->asXML()
+        );
+    }
+
     public function testChangePasswordFromLostPassword()
     {
         /** @var Member $admin */

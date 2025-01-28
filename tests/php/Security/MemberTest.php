@@ -1030,7 +1030,7 @@ class MemberTest extends FunctionalTest
     public function testMap_in_groupsReturnsAll()
     {
         $members = Member::map_in_groups();
-        $this->assertEquals(17, $members->count(), 'There are 16 members in the mock plus a fake admin');
+        $this->assertEquals(18, $members->count(), 'There are 17 members in the mock plus a fake admin');
     }
 
     /**
